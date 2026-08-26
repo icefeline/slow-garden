@@ -79,7 +79,7 @@ function UnlockEntry() {
             setCode(e.target.value);
             if (state === 'bad') setState('idle');
           }}
-          placeholder="paste your transaction code e.g. a1fd54w5"
+          placeholder="already supported? paste your code e.g. a1fd54w5"
           aria-label="supporter code"
           autoCapitalize="off"
           autoCorrect="off"
