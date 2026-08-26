@@ -221,7 +221,12 @@
   /* 14px, not the reference's 18: the box is already inset by the page gutter,
      and stacking both left its copy measurably narrower than the body text it
      sits under. */
-  padding: 18px 14px 20px;
+  /* Published so the full-bleed rules below can undo exactly this much. When
+     it was written twice — once here, once as a negative margin — the desktop
+     override at the bottom of this file changed one and not the other, and the
+     rules came up 12px short at each end. */
+  --mod-pad: 14px;
+  padding: 18px var(--mod-pad) 20px;
 }
 
 .log {
@@ -255,8 +260,8 @@
    edges; the matching padding keeps the copy where it was. */
 .try {
   border-top: 1px dotted var(--lime-rule);
-  margin: 14px -14px 0;
-  padding: 12px 14px 0;
+  margin: 14px calc(-1 * var(--mod-pad)) 0;
+  padding: 12px var(--mod-pad) 0;
 }
 
 /* Same spacing as .try, no rule: the transit toggle is a footnote to the read
@@ -409,7 +414,7 @@
 
   /* The reference insets this to 792px; here it lines up with the measure so
      its edges agree with the body columns above and the input below. */
-  .module { width: var(--measure); margin: 32px auto 0; padding: 18px 26px 24px; }
+  .module { width: var(--measure); margin: 32px auto 0; --mod-pad: 26px; padding: 18px var(--mod-pad) 24px; }
   .log { font-size: 18px; }
   .module h2 { margin: 8px 0 14px; }
 
@@ -425,8 +430,8 @@
    rule, not a boxed form field the rest of the page has no vocabulary for. */
 .unlock {
   border-top: 1px dotted var(--lime-rule);
-  margin: 14px -14px 0;
-  padding: 12px 14px 0;
+  margin: 14px calc(-1 * var(--mod-pad)) 0;
+  padding: 12px var(--mod-pad) 0;
 }
 
 .unlockRow { display: flex; align-items: baseline; gap: 8px; }
