@@ -91,9 +91,17 @@ function UnlockEntry() {
           </button>
         )}
       </form>
-      {state === 'bad' && (
+      {state === 'bad' ? (
         <p className={styles.unlockNote}>
           that code didn&apos;t match. check it came from the email with your receipt.
+        </p>
+      ) : (
+        /* Nobody has seen one of these before, and the field alone does not
+           say where it comes from. The shape is shown rather than a real
+           code, so the example cannot be pasted in and fail. */
+        <p className={styles.unlockNote}>
+          emailed to you after a coffee · looks like{' '}
+          <span style={{ letterSpacing: '0.04em' }}>a1b2c3d4-XXXXXXXXXXXXXXXX</span>
         </p>
       )}
     </div>
@@ -228,7 +236,10 @@ export function Module({
             if this has meant something to you, a small contribution goes directly toward
             keeping it running :-)
           </p>
-          <div className={styles.try}>
+          {/* `explain`, not `try`: same spacing, no rule. The link is the
+              sentence above it carried to its conclusion, not a new section,
+              and a divider between them read as though it were. */}
+          <div className={styles.explain}>
             <a
               href="https://buymeacoffee.com/shxntxnx"
               target="_blank"
