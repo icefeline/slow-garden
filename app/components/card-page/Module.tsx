@@ -79,7 +79,7 @@ function UnlockEntry() {
             setCode(e.target.value);
             if (state === 'bad') setState('idle');
           }}
-          placeholder="already supported? paste your code"
+          placeholder="paste your transaction code e.g. a1fd54w5"
           aria-label="supporter code"
           autoCapitalize="off"
           autoCorrect="off"
@@ -91,17 +91,12 @@ function UnlockEntry() {
           </button>
         )}
       </form>
-      {state === 'bad' ? (
+      {/* The example lives in the placeholder rather than on a line of its own:
+          the field is already under the coffee link, so where the code comes
+          from is answered by what it sits beneath. */}
+      {state === 'bad' && (
         <p className={styles.unlockNote}>
           that code didn&apos;t match. check it came from the email with your receipt.
-        </p>
-      ) : (
-        /* Nobody has seen one of these before, and the field alone does not
-           say where it comes from. The shape is shown rather than a real
-           code, so the example cannot be pasted in and fail. */
-        <p className={styles.unlockNote}>
-          emailed to you after a coffee · looks like{' '}
-          <span style={{ letterSpacing: '0.04em' }}>a1b2c3d4-XXXXXXXXXXXXXXXX</span>
         </p>
       )}
     </div>
