@@ -609,27 +609,6 @@ function keywordsOf(card: TarotCard, isReversed: boolean): string[] {
   return isReversed ? card.reversedKeywords : card.uprightKeywords;
 }
 
-/**
- * The question, cut at its first clause.
- *
- * The meanings ask one thing and then extend it — "Where in your life are you
- * being called to begin again, to step toward something that excites and
- * terrifies you in equal measure?" The part before the comma is the question;
- * what follows is elaboration, and on a card it is the part that runs out of
- * room. Cut there and the line reads as a question rather than as a paragraph
- * with a mark at the end.
- *
- * Across the deck this takes the longest from 129 characters to 101 and the
- * median to 49. The footer still wraps, because 21 cards remain longer than a
- * single line — this shortens the ask, it does not guarantee it fits.
- */
-function firstClause(meaning: string): string {
-  const question = firstQuestions(meaning, 1).trim();
-  const head = question.split(',')[0].trim();
-  if (!head || head === question) return question;
-  return head.endsWith('?') ? head : `${head}?`;
-}
-
 function toRoman(n: number): string {
   const table: Array<[number, string]> = [
     [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I'],
@@ -953,22 +932,8 @@ async function drawPlate(
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
     .toUpperCase();
   const time = formatTime(drawnAt);
-  /*
-   * Reversed is said; upright is not. The plates now carry the reversed
-   * meaning and keywords, and a card whose text has changed without saying why
-   * reads as a different card rather than the same one the other way up. The
-   * stamp and the trace label both orientations because their caption line is
-   * a fixed shape; here the line is a date, and "upright" on every card would
-   * be noise on seventy-eight of them to be useful on the few.
-   */
-  const drawnLine = [
-    `DRAWN ${stamp}`,
-    time || null,
-    isReversed ? 'REVERSED' : null,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-  ctx.fillText(drawnLine, left, y);
+  // Just the date. The footer says which way up the card came out.
+  ctx.fillText(time ? `DRAWN ${stamp} · ${time}` : `DRAWN ${stamp}`, left, y);
   ctx.letterSpacing = '0px';
   y += 22 + 42;
 
@@ -1007,7 +972,9 @@ async function drawPlate(
   y = drawLines(ctx, bodyLines, left, y, leading);
 
   if (p.chips) {
-    y += 44;
+    // Close under the copy they belong to. At 44 they read as a separate band
+    // sitting in the middle of the panel rather than as the card's keywords.
+    y += 24;
     ctx.font = `19px ${mono}`;
     ctx.letterSpacing = tracking(0.1, 19);
     let chipX = left;
@@ -1055,15 +1022,20 @@ async function drawPlate(
   ctx.font = `40px ${term}`;
   const markW = ctx.measureText('SLOWWW.GARDEN').width;
 
+  /*
+   * The orientation, not the question.
+   *
+   * The question belonged here in the reference, but the deck's questions run
+   * to a median of forty-nine characters and a maximum of a hundred and one —
+   * they cannot share a line with the wordmark, and wrapping them turned a
+   * footer into a paragraph. The orientation is one word, always fits, and is
+   * the thing a reader most needs to know that the card itself does not say.
+   */
   ctx.fillStyle = p.meta;
   ctx.font = `21px ${mono}`;
-  const askWidth = CARD_W - left * 2 - markW - 28;
-  const ask = wrap(ctx, firstClause(meaningOf(card, isReversed)).toUpperCase(), askWidth, 2);
-  // Drawn upward from the baseline, so the last line always sits on the
-  // wordmark's line however many there are.
-  ask.forEach((line, i) => {
-    ctx.fillText(line, left, footY - (ask.length - 1 - i) * 26);
-  });
+  ctx.letterSpacing = tracking(0.14, 21);
+  ctx.fillText(isReversed ? 'REVERSED' : 'UPRIGHT', left, footY);
+  ctx.letterSpacing = '0px';
 
   ctx.fillStyle = p.textInk;
   ctx.font = `40px ${term}`;
