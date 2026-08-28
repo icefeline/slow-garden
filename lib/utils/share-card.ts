@@ -480,7 +480,7 @@ export async function drawStamp(
 
     sctx.globalCompositeOperation = 'multiply';
     sctx.drawImage(
-      treated(art, artW, artH, { grayscale: true, contrast: 1.55, brightness: 1.08 }),
+      treated(art, artW, artH, { grayscale: true, contrast: 1.75, brightness: 0.9 }),
       padX,
       artYLocal
     );
@@ -488,8 +488,14 @@ export async function drawStamp(
     // The bone dot screen over the window — the spec's 9px cell at .6.
     const screen = ditherPattern(sctx, 9, PAPER, 0.42);
     if (screen) {
+      /*
+       * The dot screen at .6 was lifting the whole window — a screen blend at
+       * that strength is most of a wash, and the gradient underneath had
+       * nothing left to show. Halved, it still reads as a printed screen and
+       * the colour keeps its depth.
+       */
       sctx.globalCompositeOperation = 'screen';
-      sctx.globalAlpha = 0.6;
+      sctx.globalAlpha = 0.3;
       sctx.fillStyle = screen;
       sctx.fillRect(padX, artYLocal, artW, artH);
       sctx.globalAlpha = 1;
@@ -673,14 +679,23 @@ export async function drawPixelBleed(
      */
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
-    ctx.globalAlpha = 0.9;
+    /*
+     * Deeper than the spec's literal numbers, deliberately.
+     *
+     * Screen only ever lightens, so brightness above 1 lifts the darks as well
+     * as the lights and the cobalt stops reading through them — on artwork
+     * with a pale ground the whole card washes out. The reference is a deep
+     * blue field with a light figure standing in it, which needs the darks
+     * held down and the separation carried by contrast instead.
+     */
+    ctx.globalAlpha = 0.82;
     // object-position: 50% 42% — the frame sits a little above centre.
     ctx.drawImage(
       treated(
         art,
         CARD_W,
         CARD_H,
-        { grayscale: true, contrast: 1.5, brightness: 1.1 },
+        { grayscale: true, contrast: 1.9, brightness: 0.86 },
         0.5,
         0.42,
         true
