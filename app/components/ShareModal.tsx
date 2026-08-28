@@ -24,9 +24,9 @@ import {
  * a plainer version of itself. Add it back alongside the first traces.
  */
 const TEMPLATES = [
-  { id: 'stamp', label: 'stamp', draw: drawStamp },
   { id: 'bleed', label: 'bleed', draw: drawPixelBleed },
   { id: 'plate-dark', label: 'plate', draw: drawPlateDark },
+  { id: 'stamp', label: 'stamp', draw: drawStamp },
   { id: 'plate-light', label: 'plate ii', draw: drawPlateLight },
 ] as const;
 
@@ -82,7 +82,20 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         return template.draw(canvas, context).catch(() => undefined);
       })
     ).then(() => {
-      if (!cancelled) setReady(true);
+      if (cancelled) return;
+      setReady(true);
+      /*
+       * Pin the rail after the drawing, not only on mount.
+       *
+       * Each canvas has no laid-out height until it has been drawn, so the
+       * rail's contents grow underneath it and the browser adjusts scroll to
+       * keep what it thinks you were looking at — which landed the sheet on
+       * the last template. Resetting once the sizes are final is what actually
+       * holds.
+       */
+      const rail = railRef.current;
+      if (rail) rail.scrollLeft = 0;
+      setActive(0);
     });
 
     return () => {
