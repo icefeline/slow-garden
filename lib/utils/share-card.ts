@@ -36,8 +36,17 @@ const PAPER = '#f2efe1';
  * whatever the build actually produced.
  */
 function faces(): { term: string; sans: string; mono: string } {
+  /*
+   * Read from body, not documentElement.
+   *
+   * next/font puts its variables on the class it gives <body>, so they are
+   * empty on <html> — and reading them there returned nothing, silently, so
+   * every card was drawn in the fallback monospace and sans instead of the
+   * faces the spec names. Canvas gives no warning for a font it cannot find;
+   * it just draws something else.
+   */
   const read = (variable: string, fallback: string) => {
-    const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
+    const value = getComputedStyle(document.body).getPropertyValue(variable).trim();
     return value || fallback;
   };
   return {
@@ -347,10 +356,16 @@ export async function drawStamp(
   }
   sctx.letterSpacing = '0px';
 
-  // The numeral, where the card has one — the pips carry it too, which is
-  // where the design's IX on the Nine of Cups comes from. Court cards have no
-  // number and correctly get nothing.
-  if (typeof card.number === 'number' && card.number > 0) {
+  /*
+   * The numeral, where the card has one.
+   *
+   * The pips carry it as well as the majors, which is where the design's IX on
+   * the Nine of Cups comes from. The court does not — and the court cards DO
+   * hold a number in the deck data, 11 through 14, so a truthy check is not
+   * enough: it printed XIII on the Queen of Pentacles, which is the same
+   * mistake the mock made and for the same reason.
+   */
+  if (typeof card.number === 'number' && card.number > 0 && !isCourt(card.id)) {
     sctx.fillStyle = COBALT;
     sctx.font = `700 52px ${sans}`;
     sctx.textAlign = 'right';
@@ -467,6 +482,11 @@ function firstQuestions(meaning: string, count: number): string {
   const questions = meaning.match(/[^.?!]+\?/g);
   if (!questions) return meaning;
   return questions.slice(0, count).map((q) => q.trim().toLowerCase()).join(' ');
+}
+
+/** Page, knight, queen, king — numbered in the data, unnumbered on the card. */
+function isCourt(cardId: string): boolean {
+  return /-(page|knight|queen|king)$/.test(cardId);
 }
 
 function toRoman(n: number): string {

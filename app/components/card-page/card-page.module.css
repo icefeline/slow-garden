@@ -452,3 +452,20 @@
 .unlockInput::placeholder { color: var(--lime-ink-soft); }
 
 .unlockNote { font-family: var(--f-term); font-size: 15px; color: var(--lime-ink-soft); margin-top: 8px; }
+
+/* --- share -------------------------------------------------------- */
+/* Set as a prompt line, not a button: it sits under the reflection box in a
+   column of terminal voice, and a filled control there would be the loudest
+   thing on a page whose whole argument is quiet. */
+.share {
+  align-self: flex-start;
+  margin-top: 18px;
+  font-family: var(--f-term);
+  font-size: 19px;
+  color: var(--ink-soft, #8b9a7a);
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  padding: 0 0 3px;
+  cursor: pointer;
+}

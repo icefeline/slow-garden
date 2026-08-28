@@ -8,6 +8,7 @@ import TearOffPage from './components/TearOffPage';
 import GroundTexture from './components/GroundTexture';
 import AsciiFlower from './components/AsciiFlower';
 import CardSelector from './components/CardSelector';
+import ShareModal from './components/ShareModal';
 import { LABEL_TYPE } from './components/type';
 import cardPage from './components/card-page/card-page.module.css';
 import { CardName } from './components/card-page';
@@ -174,6 +175,16 @@ export default function Home() {
   const [dateString, setDateString] = useState('');
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
   const [viewingPastCard, setViewingPastCard] = useState(false);
+  /*
+   * The share sheet.
+   *
+   * Lives on the card page rather than inside the lime module, because a share
+   * card carries only fixed card data — the name, keywords, description, scent
+   * recipe. None of the personalised reading and none of the reflection. So it
+   * has to work on a day the quota is spent or personalisation is switched
+   * off, when the module is showing something else entirely.
+   */
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Shuffle animation — single boolean so React never re-renders mid-animation
   const [isAnimating, setIsAnimating] = useState(false);
@@ -514,6 +525,14 @@ export default function Home() {
         ) : (
           <div className={cardPage.entry}>{reflection}</div>
         )}
+        <button
+          type="button"
+          onClick={() => setShareOpen(true)}
+          className={cardPage.share}
+        >
+          &gt; SHARE THIS CARD
+        </button>
+
         {/* Only a log that has something in it can confirm itself. */}
         {(isToday ? savedLength > 0 : reflection.trim().length > 0) && (
           <div className={cardPage.saved}>
@@ -936,6 +955,16 @@ export default function Home() {
           buy me a coffee
         </a>
       </div>
+
+      {shareOpen && card && (
+        <ShareModal
+          card={card}
+          isReversed={isReversed}
+          date={dateString ? new Date(`${dateString}T00:00:00`) : new Date()}
+          drawnAt={typeof window !== 'undefined' ? localStorage.getItem(`drawn-at-${dateString}`) ?? undefined : undefined}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
 
       {/* Development Card Selector */}
       {process.env.NODE_ENV === 'development' && (
