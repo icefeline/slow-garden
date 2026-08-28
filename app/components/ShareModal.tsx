@@ -7,6 +7,7 @@ import {
   drawPixelBleed,
   drawPlateDark,
   drawPlateLight,
+  drawAsciiTrace,
   CARD_W,
   CARD_H,
   type ShareContext,
@@ -24,6 +25,7 @@ const TEMPLATES = [
   { id: 'bleed', label: 'bleed', draw: drawPixelBleed },
   { id: 'plate-dark', label: 'plate', draw: drawPlateDark },
   { id: 'plate-light', label: 'plate ii', draw: drawPlateLight },
+  { id: 'ascii', label: 'trace', draw: drawAsciiTrace },
 ] as const;
 
 interface ShareModalProps {

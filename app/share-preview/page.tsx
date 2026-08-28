@@ -10,9 +10,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { tarotDeck } from '@/lib/data/tarot-deck';
-import { drawStamp, drawPixelBleed, drawPlateDark, drawPlateLight, CARD_W, CARD_H } from '@/lib/utils/share-card';
+import { drawStamp, drawPixelBleed, drawPlateDark, drawPlateLight, drawAsciiTrace, CARD_W, CARD_H } from '@/lib/utils/share-card';
 
-const DRAWERS = { stamp: drawStamp, bleed: drawPixelBleed, plate: drawPlateDark, plate2: drawPlateLight } as const;
+const DRAWERS = { stamp: drawStamp, bleed: drawPixelBleed, plate: drawPlateDark, plate2: drawPlateLight, ascii: drawAsciiTrace } as const;
 
 export default function SharePreview() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,12 +24,13 @@ export default function SharePreview() {
     const card = tarotDeck.find((c) => c.id === cardId) ?? tarotDeck[0];
     const canvas = canvasRef.current;
     if (!canvas) return;
-    DRAWERS[tpl](canvas, {
+    const ctx = {
       card,
       isReversed: false,
       date: new Date('2026-08-27T06:41:00'),
       drawnAt: new Date('2026-08-27T06:41:00').toISOString(),
-    })
+    };
+    DRAWERS[tpl](canvas, ctx)
       .then(() => setError(null))
       .catch((e) => setError(String(e)));
   }, [cardId, tpl]);

@@ -18,6 +18,7 @@
 import type { TarotCard } from '@/lib/types/tarot';
 import { cardScents, cardMemories } from '@/lib/data/card-scents';
 import { noteShares } from '@/lib/utils/card-readout';
+import { cardTraceSubjects } from '@/lib/data/card-trace-subjects';
 
 export const CARD_W = 1080;
 export const CARD_H = 1920;
@@ -871,3 +872,117 @@ export const drawPlateDark = (c: HTMLCanvasElement, ctx: ShareContext) =>
   drawPlate(c, ctx, PLATE_DARK);
 export const drawPlateLight = (c: HTMLCanvasElement, ctx: ShareContext) =>
   drawPlate(c, ctx, PLATE_LIGHT);
+
+/**
+ * Template 5 — the ascii trace.
+ *
+ * The trace picks out one element of the card — the sprig on the Queen, the
+ * horns on the Devil — and it does that without being told which, because of
+ * how the deck is drawn: the subject is dark linework on a lighter ground. So
+ * sampling the art on a grid and only setting a glyph where the cell is dark
+ * enough leaves the drawn form standing in characters and the ground empty.
+ * Different card, different element, no per-card authoring.
+ *
+ * The ramp runs dense to sparse, so the darkest parts of the drawing come out
+ * as the heaviest glyphs and the trace keeps the subject's own weight.
+ */
+export async function drawAsciiTrace(
+  canvas: HTMLCanvasElement,
+  { card, isReversed }: ShareContext,
+): Promise<void> {
+  await fontsReady();
+  const { term, sans, mono } = faces();
+
+  canvas.width = CARD_W;
+  canvas.height = CARD_H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+
+  ctx.fillStyle = '#3a3fd6';
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+
+  let art: HTMLImageElement | null = null;
+  try {
+    art = await loadImage(cardImageSrc(card));
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.filter = 'grayscale(1) contrast(.95) brightness(1.06)';
+    drawCover(ctx, art, 0, 0, CARD_W, CARD_H, 0.5, 0.38);
+    ctx.filter = 'none';
+    ctx.restore();
+  } catch {
+    // no art — the trace has nothing to read, and the type still stands
+  }
+
+  /*
+   * The trace layer is authored art, not generated.
+   *
+   * Three attempts at deriving it from the card said why: tracing the whole
+   * frame gives a halftone screen, taking the largest dark mass finds the
+   * wrong form — the caption read HORNS while the trace sat on the goat's
+   * chest — and even aimed at the right region it reproduces linework rather
+   * than becoming a shape of its own. The reference traces are drawn things,
+   * and they read that way.
+   *
+   * So each card brings its own lime character layer as a PNG at full card
+   * size, laid over the art at the offset the reference uses. A card without
+   * one simply has no trace; nothing here fails or waits.
+   */
+  try {
+    const trace = await loadImage(`/trace/${card.id}.png`);
+    ctx.drawImage(trace, -8, 6, CARD_W, CARD_H);
+  } catch {
+    // no trace drawn for this card yet
+  }
+
+  // ── header ────────────────────────────────────────────────────────────
+  const numeral =
+    typeof card.number === 'number' && card.number > 0 && !isCourt(card.id)
+      ? `${toRoman(card.number)} · `
+      : '';
+  ctx.fillStyle = LIME;
+  ctx.font = `17px ${mono}`;
+  ctx.letterSpacing = tracking(0.24, 17);
+  ctx.textBaseline = 'top';
+  const subject = cardTraceSubjects[card.id];
+  ctx.fillText(
+    `${numeral}${isReversed ? 'REVERSED' : 'UPRIGHT'}${subject ? ` · ${subject.toUpperCase()}` : ''}`,
+    56,
+    52
+  );
+  ctx.letterSpacing = '0px';
+
+  ctx.fillStyle = '#f4f1e4';
+  ctx.font = `700 76px ${sans}`;
+  ctx.letterSpacing = tracking(-0.03, 76);
+  let hy = 52 + 17 + 24;
+  for (const line of wrap(ctx, card.name.toUpperCase(), CARD_W - 112, 3)) {
+    ctx.fillText(line, 56, hy);
+    hy += 76 * 0.9;
+  }
+  ctx.letterSpacing = '0px';
+
+  // ── footer ────────────────────────────────────────────────────────────
+  const rows = scentRows(card.id);
+  const noteLead = 30 * 1.06;
+  ctx.font = `30px ${term}`;
+  ctx.fillStyle = LIME;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  rows.forEach((row, i) => {
+    ctx.fillText(
+      row.note.toLowerCase(),
+      CARD_W - 56,
+      CARD_H - 64 - (rows.length - 1 - i) * noteLead
+    );
+  });
+  ctx.textAlign = 'left';
+
+  ctx.fillStyle = '#f4f1e4';
+  ctx.font = `500 31px ${sans}`;
+  const message = card.description.replace(/^.*? represents /i, '').toLowerCase();
+  const lines = wrap(ctx, message, 520, 3);
+  lines.forEach((line, i) => {
+    ctx.fillText(line, 56, CARD_H - 64 - (lines.length - 1 - i) * 31 * 1.18);
+  });
+}
