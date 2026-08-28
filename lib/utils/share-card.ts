@@ -552,7 +552,12 @@ function drawCover(
   const scale = Math.max(w / img.width, h / img.height);
   const dw = img.width * scale;
   const dh = img.height * scale;
-  ctx.drawImage(img, x + (w - dw) * posX, y + (h - dh) * posY, dw, dh);
+  /*
+   * Rounded, because a nearest-neighbour upscale landing on a fractional
+   * offset samples the edge row inconsistently — the top of the bleed came out
+   * ragged, like paper cut crooked. Whole pixels in, whole pixels out.
+   */
+  ctx.drawImage(img, Math.round(x + (w - dw) * posX), Math.round(y + (h - dh) * posY), Math.round(dw), Math.round(dh));
 }
 
 /** The meanings are written as runs of questions; the card wants the first few. */
@@ -734,6 +739,8 @@ interface PlatePalette {
   textInk: string;
   meta: string;
   bodyFace: 'mono' | 'term';
+  /** The heaviest weight this face actually loads — never more. */
+  leadWeight: number;
   bodySize: number;
   leadIn: string;
   chips: boolean;
@@ -757,6 +764,7 @@ const PLATE_DARK: PlatePalette = {
   meta: '#a9b3a0',
   bodyFace: 'mono',
   bodySize: 64,
+  leadWeight: 500,
   leadIn: '#f2f0eb',
   chips: true,
   body: (card) => card.description.replace(/^.*? represents /i, ''),
@@ -779,6 +787,7 @@ const PLATE_LIGHT: PlatePalette = {
   meta: '#555',
   bodyFace: 'term',
   bodySize: 48,
+  leadWeight: 400,
   leadIn: '#1C3D5C',
   chips: false,
   body: (card) => cardMemories[card.id] ?? card.description,
@@ -897,8 +906,16 @@ async function drawPlate(
   ctx.letterSpacing = '0px';
   y += 22 + 42;
 
-  // The name leads the body, in the same face at the same size.
-  ctx.font = `900 ${p.bodySize}px ${bodyFamily}`;
+  /*
+   * The lead-in asks for the heaviest weight the face actually has.
+   *
+   * It used to ask for 900. VT323 ships one weight and DM Mono stops at 500,
+   * so the browser synthesised the rest by smearing the glyphs sideways —
+   * which on a pixel face turns the counters to mush. It is why the W in
+   * KNIGHT OF SWORDS was unreadable. A synthesised weight never looks bold,
+   * only damaged.
+   */
+  ctx.font = `${p.leadWeight} ${p.bodySize}px ${bodyFamily}`;
   ctx.fillStyle = p.leadIn;
   const lead = p.bodyFace === 'term' ? `> ${card.name.toUpperCase()}_` : card.name.toUpperCase();
   ctx.fillText(lead, left, y);
@@ -936,7 +953,15 @@ async function drawPlate(
       ctx.lineWidth = 1;
       ctx.strokeRect(chipX, y, w, 38);
       ctx.fillStyle = p.textInk;
-      ctx.fillText(label, chipX + 14, y + 11);
+      /*
+       * Centred by baseline rather than by a guessed offset. Drawing from the
+       * top and nudging down by an eyeballed 11px left the words sitting high
+       * in their boxes — the nudge has to change with the type size, and a
+       * middle baseline works it out from the metrics instead.
+       */
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, chipX + 14, y + 19);
+      ctx.textBaseline = 'top';
       chipX += w + 10;
     }
     ctx.letterSpacing = '0px';

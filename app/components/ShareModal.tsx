@@ -30,6 +30,19 @@ const TEMPLATES = [
   { id: 'plate-light', label: 'plate ii', draw: drawPlateLight },
 ] as const;
 
+/**
+ * The menu's field and its type — a VCR set-up screen, which is where the
+ * design comes from. Deliberately not the app's own ground: this is a machine
+ * talking, and it should look like a different machine.
+ *
+ * A deep navy rather than the brand cobalt. The cobalt is a foreground colour
+ * — it is what the cards are drawn IN — and at full strength behind them it
+ * competes with the very thing it is holding. This sits back far enough to
+ * read as a screen the cards are displayed on.
+ */
+const MENU_BLUE = '#010179';
+const MENU_INK = '#f2efe1';
+
 interface ShareModalProps {
   card: TarotCard;
   isReversed: boolean;
@@ -61,6 +74,81 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
   const [active, setActive] = useState(0);
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState(false);
+  /*
+   * The tallest a card may be, measured rather than expressed in CSS.
+   *
+   * Three attempts to say it in stylesheet terms all failed the same way: a
+   * canvas carries an intrinsic 1080x1920, and as a flex item that intrinsic
+   * size kept winning over max-height and percentage heights, so the card
+   * overflowed the rail and was cropped top and bottom. Measuring the rail and
+   * giving the card a pixel ceiling is unambiguous — there is nothing left for
+   * the layout to interpret.
+   */
+  /*
+   * The rail's own size, kept current, with the card derived from it at render
+   * time rather than stored alongside it.
+   *
+   * Storing the computed card size let the two fall out of step: the rail was
+   * measured once at one width, the viewport then changed, and the card kept
+   * the size it had been given — which is how it ended up 92% wide when it had
+   * been asked for 80%, and why the end margins no longer matched the card
+   * they were spacing.
+   */
+  const [rail, setRail] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el) return;
+    const measure = () => {
+      if (el.clientWidth && el.clientHeight) {
+        setRail({ w: el.clientWidth, h: el.clientHeight });
+      }
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  /*
+   * The card takes the smaller of the two bounds — the rail's height, or 80%
+   * of its width — and the ends get exactly half of whatever is left beside
+   * it, so the first and last can reach the middle.
+   */
+  const box = rail
+    ? (() => {
+        const widest = rail.w * 0.8;
+        const h = Math.min(rail.h, widest * (CARD_H / CARD_W));
+        const w = h * (CARD_W / CARD_H);
+        return { w, h, edge: Math.max(0, (rail.w - w) / 2) };
+      })()
+    : null;
+
+  /**
+   * Bring one card to the middle of the rail.
+   *
+   * Setting scrollLeft to zero is not a snap position for a centre-aligned
+   * item — it puts the rail at its start, which leaves the first card sitting
+   * slightly off-centre until a gesture makes the browser re-snap. Measuring
+   * the gap between the card's middle and the rail's and closing it lands the
+   * card exactly, from any starting point.
+   *
+   * Rects throughout, so everything is in the viewport's frame and there is no
+   * offsetParent to reconcile.
+   */
+  const centre = useCallback((index: number, smooth = false) => {
+    const el = railRef.current;
+    const item = el?.children[index] as HTMLElement | undefined;
+    if (!el || !item) return;
+    const railBox = el.getBoundingClientRect();
+    const itemBox = item.getBoundingClientRect();
+    const delta = itemBox.left + itemBox.width / 2 - (railBox.left + railBox.width / 2);
+    el.scrollTo({ left: el.scrollLeft + delta, behavior: smooth ? 'smooth' : 'auto' });
+  }, []);
 
   /*
    * Every template is drawn once, when the sheet opens, rather than on demand.
@@ -99,8 +187,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
        * racing the reflow that the drawing causes.
        */
       requestAnimationFrame(() => {
-        const rail = railRef.current;
-        if (rail) rail.scrollLeft = 0;
+        centre(0);
         setActive(0);
       });
     });
@@ -120,11 +207,9 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
    * already passed rather than the beginning of the set.
    */
   useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) return;
-    rail.scrollLeft = 0;
+    centre(0);
     setActive(0);
-  }, []);
+  }, [centre]);
 
   // Escape closes, and the page behind does not scroll while this is open.
   useEffect(() => {
@@ -149,8 +234,8 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
    * first and last cards can reach the middle too.
    */
   const onScroll = useCallback(() => {
-    const rail = railRef.current;
-    if (!rail) return;
+    const el = railRef.current;
+    if (!el) return;
     /*
      * Measured with bounding rects, not offsetLeft.
      *
@@ -161,11 +246,11 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
      *
      * Rects are all in the viewport's frame, so there is nothing to reconcile.
      */
-    const railBox = rail.getBoundingClientRect();
+    const railBox = el.getBoundingClientRect();
     const middle = railBox.left + railBox.width / 2;
     let nearest = 0;
     let best = Infinity;
-    Array.from(rail.children).forEach((child, i) => {
+    Array.from(el.children).forEach((child, i) => {
       const box = (child as HTMLElement).getBoundingClientRect();
       const distance = Math.abs(box.left + box.width / 2 - middle);
       if (distance < best) {
@@ -182,7 +267,19 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
       if (!canvas) return resolve(null);
       canvas.toBlob((blob) => {
         if (!blob) return resolve(null);
-        const name = `slow-garden-${card.id}-${TEMPLATES[active].id}.png`;
+        /*
+         * Named for a person, not for the codebase. It was saving as
+         * "slow-garden-pentacles-queen-plate-dark.png", which is the card's
+         * internal id and the template's — meaningful here and meaningless in
+         * a camera roll. The card's own name and the day it was drawn is what
+         * someone would look for.
+         */
+        const day = date.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+        const name = `slow garden — ${card.name} — ${day}.png`;
         resolve(new File([blob], name, { type: 'image/png' }));
       }, 'image/png');
     });
@@ -220,9 +317,13 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         position: 'fixed',
         inset: 0,
         zIndex: 200,
-        background: 'rgba(10, 14, 8, .9)',
-        backdropFilter: 'blur(6px)',
-        WebkitBackdropFilter: 'blur(6px)',
+        /*
+         * The old VCR and BIOS menu: one flat blue field, pixel type, and a
+         * row of transport arrows. It suits the app's machine voice better
+         * than a dimmed blur did — and a blur behind a picker is a modern
+         * idiom the rest of this page does not speak.
+         */
+        background: MENU_BLUE,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -230,19 +331,40 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         // just under the card instead of at the far bottom of the screen with
         // a gap between.
         justifyContent: 'center',
-        gap: 14,
+        gap: 16,
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
       }}
     >
+      {/* The menu's title rule, set the way those screens set theirs. */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          fontFamily: 'var(--font-vt323), monospace',
+          fontSize: 'clamp(20px, 5.4vw, 26px)',
+          letterSpacing: '0.12em',
+          color: MENU_INK,
+          flexShrink: 0,
+          paddingBottom: 4,
+        }}
+      >
+        ————— TELL YOUR FRIENDS —————
+      </div>
+
       {/*
         The rail.
 
-        Cards take 92% of the width, so the next one shows at the edge. That
+        Cards take 80% of the width, so the next one shows at the edge. That
         sliver is the whole reason this is a rail rather than one card with
         buttons beneath it — nothing else says "there are more" as immediately,
         and it costs no interface to say it. Wide enough to fill the screen,
-        narrow enough that the neighbour still shows.
+        narrow enough that the neighbour still shows. The end margins are
+        exactly half of what is left over — (100 - 80) / 2 — which is what
+        lets the first and last cards reach the middle rather than stopping
+        short at the ends of the scroll.
+
+        The gap is small on purpose: the neighbours sit close, so more of the
+        next card is in view as you move between them.
 
         The snapping is the browser's. `scroll-snap-type` with a centred
         alignment gives the flick, the settle and the momentum that a
@@ -255,15 +377,20 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
+          gap: 4,
           width: '100%',
-          flex: '0 1 auto',
+          /*
+           * The rail takes the room the title and controls leave, and the
+           * cards size themselves to it. Capping the card at a fraction of the
+           * viewport instead meant the total could exceed the screen — the
+           * rail then shrank under a card taller than itself and clipped its
+           * top and bottom, which is what cut the edges off.
+           */
+          flex: '1 1 auto',
           minHeight: 0,
           overflowX: 'auto',
           overflowY: 'hidden',
           scrollSnapType: 'x mandatory',
-          // This padding is what lets the first and last cards reach the centre.
-          padding: '0 4%',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
         }}
@@ -272,12 +399,23 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           <div
             key={template.id}
             style={{
-              flex: '0 0 92%',
+              // Sized from the measured card, so the item and the card it holds
+              // are the same width — percentages let those two disagree, and
+              // the end spacing was then sized against the wrong one.
+              flex: box ? `0 0 ${box.w}px` : '0 0 80%',
               scrollSnapAlign: 'center',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-
+              /*
+               * The end spacing lives on the first and last cards rather than
+               * on the rail, because a flex container with overflow drops its
+               * trailing padding — the last card could never reach the middle.
+               * Exactly half of what is left beside a card, so both ends
+               * centre.
+               */
+              marginLeft: box && i === 0 ? box.edge : undefined,
+              marginRight: box && i === TEMPLATES.length - 1 ? box.edge : undefined,
             }}
           >
             <canvas
@@ -290,12 +428,9 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
               style={{
                 // Whichever of the two binds first: wide screens run out of
                 // height, narrow ones run out of width.
+                width: box ? box.w : '100%',
+                height: box ? box.h : 'auto',
                 maxWidth: '100%',
-                // Leaves room for the dots and the two buttons beneath.
-                maxHeight: '74vh',
-                width: 'auto',
-                height: 'auto',
-                objectFit: 'contain',
                 display: 'block',
                 // The neighbours sit back, so the centred one is clearly the
                 // one being offered rather than one of four competing.
@@ -315,22 +450,35 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           alignItems: 'center',
           gap: 12,
           flexShrink: 0,
-          fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
-          color: '#F7F4E6',
+          fontFamily: 'var(--font-vt323), monospace',
+          color: MENU_INK,
         }}
       >
-        {/* Where you are along the rail, and how many there are. */}
-        <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+        {/*
+          Transport arrows, not dots. Same job — where you are, how many there
+          are — in the vocabulary of the machine the rest of this is borrowed
+          from. The one you are on is solid; the rest are the dimmed blue those
+          menus used for what you had not selected.
+        */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 4,
+            alignItems: 'center',
+            fontSize: 22,
+            lineHeight: 1,
+          }}
+        >
           {TEMPLATES.map((t, i) => (
             <span
               key={t.id}
               style={{
-                width: i === active ? 18 : 6,
-                height: 6,
-                background: i === active ? '#C9F24E' : 'rgba(247,244,230,.3)',
-                transition: 'width .25s ease, background .25s ease',
+                color: i === active ? MENU_INK : 'rgba(242, 239, 225, .38)',
+                transition: 'color .25s ease',
               }}
-            />
+            >
+              ▶
+            </span>
           ))}
         </div>
 
@@ -338,16 +486,23 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           type="button"
           onClick={share}
           disabled={!ready}
+          /*
+           * The highlighted row from those menus: a filled light block with
+           * the field's own blue knocked out of it, rather than a button with
+           * a colour of its own.
+           */
           style={{
-            background: '#C9F24E',
-            color: '#172211',
+            background: MENU_INK,
+            color: MENU_BLUE,
             border: 'none',
-            padding: '14px 34px',
-            fontSize: 13,
-            letterSpacing: '0.18em',
+            borderRadius: 0,
+            padding: '12px 56px',
+            fontFamily: 'var(--font-vt323), monospace',
+            fontSize: 24,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             cursor: ready ? 'pointer' : 'default',
-            opacity: ready ? 1 : 0.4,
+            opacity: ready ? 1 : 0.45,
           }}
         >
           {saved ? 'saved' : 'share'}
@@ -359,11 +514,13 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(247, 244, 230, .55)',
-            fontSize: 12,
-            letterSpacing: '0.18em',
+            color: MENU_INK,
+            fontFamily: 'var(--font-vt323), monospace',
+            fontSize: 22,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             cursor: 'pointer',
+            padding: 0,
           }}
         >
           close
