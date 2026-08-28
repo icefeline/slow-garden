@@ -541,10 +541,22 @@ export async function drawPixelBleed(
 
   try {
     const art = await loadImage(cardImageSrc(card));
-    // Down to an eighth and back up, smoothing off — the blocks are the point.
+    /*
+     * Down and back up with smoothing off, which is what pixelation is.
+     *
+     * A quarter, not an eighth. At an eighth the source is 135px across and
+     * there is simply not enough left of the picture — it stops reading as a
+     * pixelated bear and starts reading as a blurred one. A quarter keeps the
+     * grid clearly visible while the subject survives it.
+     *
+     * Note the grid looks softer in any preview that scales the card down,
+     * because the browser resamples those hard edges away. The exported PNG is
+     * full size and keeps them.
+     */
+    const PIXEL_DIVISOR = 4;
     const small = document.createElement('canvas');
-    small.width = Math.round(CARD_W / 8);
-    small.height = Math.round(CARD_H / 8);
+    small.width = Math.round(CARD_W / PIXEL_DIVISOR);
+    small.height = Math.round(CARD_H / PIXEL_DIVISOR);
     const sm = small.getContext('2d');
     if (sm) {
       sm.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
