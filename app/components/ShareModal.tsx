@@ -2,16 +2,28 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { TarotCard } from '@/lib/types/tarot';
-import { drawStamp, CARD_W, CARD_H, type ShareContext } from '@/lib/utils/share-card';
+import {
+  drawStamp,
+  drawPixelBleed,
+  drawPlateDark,
+  drawPlateLight,
+  CARD_W,
+  CARD_H,
+  type ShareContext,
+} from '@/lib/utils/share-card';
 
 /**
  * The share sheet.
  *
- * One template for now — the stamp — but built as a list from the start, since
- * the whole point of the design work is that a reader picks between them.
+ * Four templates, and the reader picks. They differ in what they carry as much
+ * as in how they look — the stamp asks a question, the plates give the
+ * description or the memory passage — so the choice is editorial, not a skin.
  */
 const TEMPLATES = [
   { id: 'stamp', label: 'stamp', draw: drawStamp },
+  { id: 'bleed', label: 'bleed', draw: drawPixelBleed },
+  { id: 'plate-dark', label: 'plate', draw: drawPlateDark },
+  { id: 'plate-light', label: 'plate ii', draw: drawPlateLight },
 ] as const;
 
 interface ShareModalProps {
@@ -169,6 +181,28 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           color: '#F7F4E6',
         }}
       >
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {TEMPLATES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTemplate(t.id)}
+              style={{
+                background: template === t.id ? '#C9F24E' : 'transparent',
+                color: template === t.id ? '#172211' : 'rgba(247,244,230,.7)',
+                border: `1px solid ${template === t.id ? '#C9F24E' : 'rgba(247,244,230,.28)'}`,
+                padding: '7px 14px',
+                fontSize: 11,
+                letterSpacing: '0.16em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         {state === 'failed' ? (
           <p style={{ fontSize: 14, opacity: 0.8, margin: 0 }}>
             couldn&apos;t draw this one. try again in a moment.

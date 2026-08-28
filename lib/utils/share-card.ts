@@ -16,7 +16,7 @@
  */
 
 import type { TarotCard } from '@/lib/types/tarot';
-import { cardScents } from '@/lib/data/card-scents';
+import { cardScents, cardMemories } from '@/lib/data/card-scents';
 import { noteShares } from '@/lib/utils/card-readout';
 
 export const CARD_W = 1080;
@@ -462,12 +462,15 @@ function drawCover(
   x: number,
   y: number,
   w: number,
-  h: number
+  h: number,
+  /** `object-position`, as fractions. Defaults to dead centre. */
+  posX = 0.5,
+  posY = 0.5
 ) {
   const scale = Math.max(w / img.width, h / img.height);
   const dw = img.width * scale;
   const dh = img.height * scale;
-  ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+  ctx.drawImage(img, x + (w - dw) * posX, y + (h - dh) * posY, dw, dh);
 }
 
 /** The meanings are written as runs of questions; the card wants the first few. */
@@ -512,3 +515,330 @@ export function scentRows(cardId: string): Array<{ note: string; share: number }
   const shares = noteShares(cardId, notes.length);
   return notes.map((note, i) => ({ note: note.toUpperCase(), share: shares[i] }));
 }
+
+/**
+ * Template 1 — pixel bleed.
+ *
+ * One image filling the frame, screened over cobalt, with the name sitting in
+ * the scrim at the bottom. The pixelation is real rather than a filter: the art
+ * is drawn small with smoothing off and scaled back up, which is what
+ * `image-rendering: pixelated` does and what no CSS filter can imitate.
+ */
+export async function drawPixelBleed(
+  canvas: HTMLCanvasElement,
+  { card, date, drawnAt }: ShareContext
+): Promise<void> {
+  await fontsReady();
+  const { term, mono } = faces();
+
+  canvas.width = CARD_W;
+  canvas.height = CARD_H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+
+  ctx.fillStyle = COBALT;
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+
+  try {
+    const art = await loadImage(cardImageSrc(card));
+    // Down to an eighth and back up, smoothing off — the blocks are the point.
+    const small = document.createElement('canvas');
+    small.width = Math.round(CARD_W / 8);
+    small.height = Math.round(CARD_H / 8);
+    const sm = small.getContext('2d');
+    if (sm) {
+      sm.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
+      // object-position: 50% 42% — the frame sits a little above centre.
+      drawCover(sm, art, 0, 0, small.width, small.height, 0.5, 0.42);
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = 0.9;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(small, 0, 0, CARD_W, CARD_H);
+      ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+    }
+  } catch {
+    // no art — the field and the type still carry the card
+  }
+
+  const checker = dotPattern(ctx, 11, LIME);
+  if (checker) {
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = checker;
+    ctx.fillRect(0, 0, CARD_W, 520);
+    ctx.restore();
+  }
+
+  const scrim = ctx.createLinearGradient(0, CARD_H - 640, 0, CARD_H);
+  scrim.addColorStop(0, 'rgba(22,26,61,0)');
+  scrim.addColorStop(1, 'rgba(22,26,61,.86)');
+  ctx.fillStyle = scrim;
+  ctx.fillRect(0, CARD_H - 640, CARD_W, 640);
+
+  // Name block, centred, bottom 300.
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = LIME;
+  ctx.font = `96px ${term}`;
+  ctx.fillText(card.name.toUpperCase(), CARD_W / 2, CARD_H - 300 - 78);
+
+  ctx.fillStyle = '#fff';
+  ctx.font = `52px ${mono}`;
+  const time = formatTime(drawnAt);
+  ctx.fillText(
+    time ? `MY CARD TODAY, ${time}` : 'MY CARD TODAY',
+    CARD_W / 2,
+    CARD_H - 300 - 4
+  );
+  ctx.textAlign = 'left';
+
+  // Footer bar.
+  ctx.fillStyle = LIME;
+  ctx.fillRect(0, CARD_H - 96, CARD_W, 96);
+  ctx.fillStyle = INK;
+  ctx.font = `46px ${term}`;
+  ctx.letterSpacing = tracking(0.08, 46);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('> SLOWWW.GARDEN', 60, CARD_H - 48);
+  ctx.textAlign = 'right';
+  ctx.fillText('ONE CARD A DAY', CARD_W - 60, CARD_H - 48);
+  ctx.textAlign = 'left';
+  ctx.letterSpacing = '0px';
+  void date;
+}
+
+/**
+ * Templates 2 and 4 — the dither plates.
+ *
+ * The same split geometry inverted tonally, so they are one drawing with a
+ * palette rather than two that would drift apart. The dark plate carries the
+ * card's description and its keyword chips; the light one carries the memory
+ * passage and drops the chips, which is what the spec has.
+ *
+ * The dithering is a real mask, not a texture laid over the top: the art is
+ * drawn to its own surface, then everything outside the dot grid is removed
+ * with `destination-in`, so the plate shows through the holes exactly as the
+ * CSS mask does.
+ */
+interface PlatePalette {
+  panelBg: string;
+  artFilter: string;
+  artBlend: GlobalCompositeOperation;
+  ditherCell: number;
+  ditherRatio: number;
+  overlay: string;
+  overlayBlend: GlobalCompositeOperation;
+  notesBg: string;
+  notesInk: string;
+  notesValue: string;
+  notesLabel: string;
+  textBg: string;
+  textInk: string;
+  meta: string;
+  bodyFace: 'mono' | 'term';
+  bodySize: number;
+  leadIn: string;
+  chips: boolean;
+  body: (card: TarotCard) => string;
+}
+
+const PLATE_DARK: PlatePalette = {
+  panelBg: '#1b3d5c',
+  artFilter: 'grayscale(1) invert(1) contrast(6) brightness(1.35)',
+  artBlend: 'screen',
+  ditherCell: 8,
+  ditherRatio: 0.36,
+  overlay: '#c9e0a8',
+  overlayBlend: 'darken',
+  notesBg: '#12180f',
+  notesInk: '#c9e0a8',
+  notesValue: '#8fa8c4',
+  notesLabel: '#c9e0a8',
+  textBg: '#12180f',
+  textInk: '#f2f0eb',
+  meta: '#a9b3a0',
+  bodyFace: 'mono',
+  bodySize: 64,
+  leadIn: '#f2f0eb',
+  chips: true,
+  body: (card) => card.description.replace(/^.*? represents /i, ''),
+};
+
+const PLATE_LIGHT: PlatePalette = {
+  panelBg: '#c9e0a8',
+  artFilter: 'grayscale(1) contrast(9) brightness(.75)',
+  artBlend: 'multiply',
+  ditherCell: 7,
+  ditherRatio: 0.34,
+  overlay: '#1b3d5c',
+  overlayBlend: 'lighten',
+  notesBg: '#f2f0eb',
+  notesInk: '#1b3d5c',
+  notesValue: '#7d8a72',
+  notesLabel: '#5f6b52',
+  textBg: '#f2f0eb',
+  textInk: '#111',
+  meta: '#555',
+  bodyFace: 'term',
+  bodySize: 48,
+  leadIn: '#1C3D5C',
+  chips: false,
+  body: (card) => cardMemories[card.id] ?? card.description,
+};
+
+const SPLIT_Y = 1180;
+
+async function drawPlate(
+  canvas: HTMLCanvasElement,
+  { card, date, drawnAt }: ShareContext,
+  p: PlatePalette
+): Promise<void> {
+  await fontsReady();
+  const { term, mono } = faces();
+  const bodyFamily = p.bodyFace === 'term' ? term : mono;
+
+  canvas.width = CARD_W;
+  canvas.height = CARD_H;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('no 2d context');
+
+  // ── image panel ───────────────────────────────────────────────────────
+  ctx.fillStyle = p.panelBg;
+  ctx.fillRect(0, 0, CARD_W, SPLIT_Y);
+
+  try {
+    const art = await loadImage(cardImageSrc(card));
+    const layer = document.createElement('canvas');
+    layer.width = CARD_W;
+    layer.height = SPLIT_Y;
+    const lc = layer.getContext('2d');
+    if (lc) {
+      lc.filter = p.artFilter;
+      drawCover(lc, art, 0, 0, CARD_W, SPLIT_Y);
+      lc.filter = 'none';
+
+      // Punch the dot grid: keep only what falls inside a dot.
+      const dots = ditherPattern(lc, p.ditherCell, '#000', p.ditherRatio);
+      if (dots) {
+        lc.globalCompositeOperation = 'destination-in';
+        lc.fillStyle = dots;
+        lc.fillRect(0, 0, CARD_W, SPLIT_Y);
+        lc.globalCompositeOperation = 'source-over';
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = p.artBlend;
+      ctx.drawImage(layer, 0, 0);
+      ctx.restore();
+    }
+  } catch {
+    // no art — the panel keeps its ground
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = p.overlayBlend;
+  ctx.fillStyle = p.overlay;
+  ctx.fillRect(0, 0, CARD_W, SPLIT_Y);
+  ctx.restore();
+
+  // ── the notes card, flush right ───────────────────────────────────────
+  const rows = scentRows(card.id);
+  if (rows.length) {
+    ctx.font = `42px ${term}`;
+    const widest = Math.max(...rows.map((r) => ctx.measureText(r.note).width));
+    const cardW = widest + 28 + 60 + 60;
+    const cardH = 22 + 22 + rows.length * 52 + 26;
+    const cardX = CARD_W - cardW;
+
+    ctx.fillStyle = p.notesBg;
+    ctx.fillRect(cardX, 120, cardW, cardH);
+
+    ctx.fillStyle = p.notesLabel;
+    ctx.font = `16px ${mono}`;
+    ctx.letterSpacing = tracking(0.18, 16);
+    ctx.textBaseline = 'top';
+    ctx.fillText('NOTES', cardX + 30, 142);
+    ctx.letterSpacing = '0px';
+
+    ctx.font = `42px ${term}`;
+    rows.forEach((row, i) => {
+      const y = 186 + i * 52;
+      ctx.fillStyle = p.notesInk;
+      ctx.fillText(row.note, cardX + 30, y);
+      ctx.fillStyle = p.notesValue;
+      ctx.textAlign = 'right';
+      ctx.fillText(String(row.share), cardX + cardW - 30, y);
+      ctx.textAlign = 'left';
+    });
+  }
+
+  // ── text panel ────────────────────────────────────────────────────────
+  ctx.fillStyle = p.textBg;
+  ctx.fillRect(0, SPLIT_Y, CARD_W, CARD_H - SPLIT_Y);
+
+  const left = 56;
+  const measure = CARD_W - left * 2;
+  let y = SPLIT_Y + 44;
+
+  ctx.fillStyle = p.meta;
+  ctx.font = `22px ${mono}`;
+  ctx.letterSpacing = tracking(0.14, 22);
+  ctx.textBaseline = 'top';
+  const stamp = date
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    .toUpperCase();
+  const time = formatTime(drawnAt);
+  ctx.fillText(time ? `DRAWN ${stamp} · ${time}` : `DRAWN ${stamp}`, left, y);
+  ctx.letterSpacing = '0px';
+  y += 26 + 26;
+
+  // The name leads the body, in the same face at the same size.
+  ctx.font = `900 ${p.bodySize}px ${bodyFamily}`;
+  ctx.fillStyle = p.leadIn;
+  const lead = p.bodyFace === 'term' ? `> ${card.name.toUpperCase()}_` : card.name.toUpperCase();
+  ctx.fillText(lead, left, y);
+  y += p.bodySize * 1.14;
+
+  ctx.font = `${p.bodySize}px ${bodyFamily}`;
+  ctx.fillStyle = p.textInk;
+  const bodyLines = wrap(ctx, p.body(card).toUpperCase(), measure, 8);
+  y = drawLines(ctx, bodyLines, left, y, p.bodySize * 1.14);
+
+  if (p.chips) {
+    y += 34;
+    ctx.font = `19px ${mono}`;
+    ctx.letterSpacing = tracking(0.1, 19);
+    let chipX = left;
+    for (const word of card.uprightKeywords) {
+      const label = word.toUpperCase();
+      const w = ctx.measureText(label).width + 28;
+      if (chipX + w > CARD_W - left) break;
+      ctx.strokeStyle = p.textInk;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(chipX, y, w, 33);
+      ctx.fillStyle = p.textInk;
+      ctx.fillText(label, chipX + 14, y + 8);
+      chipX += w + 10;
+    }
+    ctx.letterSpacing = '0px';
+  }
+
+  // Footer row, pinned to the bottom of the panel.
+  const footY = CARD_H - 44;
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = p.meta;
+  ctx.font = `21px ${mono}`;
+  ctx.fillText(firstQuestions(card.uprightMeaning, 1).toUpperCase(), left, footY);
+  ctx.fillStyle = p.textInk;
+  ctx.font = `40px ${term}`;
+  ctx.textAlign = 'right';
+  ctx.fillText('SLOWWW.GARDEN', CARD_W - left, footY);
+  ctx.textAlign = 'left';
+}
+
+export const drawPlateDark = (c: HTMLCanvasElement, ctx: ShareContext) =>
+  drawPlate(c, ctx, PLATE_DARK);
+export const drawPlateLight = (c: HTMLCanvasElement, ctx: ShareContext) =>
+  drawPlate(c, ctx, PLATE_LIGHT);
