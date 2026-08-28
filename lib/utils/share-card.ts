@@ -754,8 +754,17 @@ async function drawPlate(
   if (rows.length) {
     ctx.font = `42px ${term}`;
     const widest = Math.max(...rows.map((r) => ctx.measureText(r.note).width));
-    const cardW = widest + 28 + 60 + 60;
-    const cardH = 22 + 22 + rows.length * 52 + 26;
+    /*
+     * The rows were stepping at the type size plus the gap, which is right for
+     * CSS line boxes and too tight for canvas: VT323's glyphs sit small inside
+     * their em, so the same arithmetic reads as squeezed. The pitch and the
+     * padding both open up.
+     */
+    const ROW_PITCH = 58;
+    const padTopNotes = 26;
+    const padBottomNotes = 32;
+    const cardW = widest + 30 + 60 + 60;
+    const cardH = padTopNotes + 30 + rows.length * ROW_PITCH + padBottomNotes;
     const cardX = CARD_W - cardW;
 
     ctx.fillStyle = p.notesBg;
@@ -765,12 +774,12 @@ async function drawPlate(
     ctx.font = `16px ${mono}`;
     ctx.letterSpacing = tracking(0.18, 16);
     ctx.textBaseline = 'top';
-    ctx.fillText('NOTES', cardX + 30, 142);
+    ctx.fillText('NOTES', cardX + 30, 120 + padTopNotes);
     ctx.letterSpacing = '0px';
 
     ctx.font = `42px ${term}`;
     rows.forEach((row, i) => {
-      const y = 186 + i * 52;
+      const y = 120 + padTopNotes + 30 + 14 + i * ROW_PITCH;
       ctx.fillStyle = p.notesInk;
       ctx.fillText(row.note, cardX + 30, y);
       ctx.fillStyle = p.notesValue;
@@ -798,22 +807,36 @@ async function drawPlate(
   const time = formatTime(drawnAt);
   ctx.fillText(time ? `DRAWN ${stamp} · ${time}` : `DRAWN ${stamp}`, left, y);
   ctx.letterSpacing = '0px';
-  y += 26 + 26;
+  y += 22 + 42;
 
   // The name leads the body, in the same face at the same size.
   ctx.font = `900 ${p.bodySize}px ${bodyFamily}`;
   ctx.fillStyle = p.leadIn;
   const lead = p.bodyFace === 'term' ? `> ${card.name.toUpperCase()}_` : card.name.toUpperCase();
   ctx.fillText(lead, left, y);
-  y += p.bodySize * 1.14;
+  const leading = p.bodySize * 1.22;
+  y += leading;
+
+  /*
+   * How many lines fit, rather than a fixed cap.
+   *
+   * The passages run to very different lengths — a one-line description on one
+   * plate, a whole remembered afternoon on the other — so a fixed count either
+   * crowds the short ones or runs the long ones into the chips. This measures
+   * what is actually left above the footer and takes that many.
+   */
+  const footerBaseline = CARD_H - 56;
+  const reserved = (p.chips ? 44 + 38 : 0) + 40;
+  const room = footerBaseline - y - reserved;
+  const maxLines = Math.max(1, Math.floor(room / leading));
 
   ctx.font = `${p.bodySize}px ${bodyFamily}`;
   ctx.fillStyle = p.textInk;
-  const bodyLines = wrap(ctx, p.body(card).toUpperCase(), measure, 8);
-  y = drawLines(ctx, bodyLines, left, y, p.bodySize * 1.14);
+  const bodyLines = wrap(ctx, p.body(card).toUpperCase(), measure, maxLines);
+  y = drawLines(ctx, bodyLines, left, y, leading);
 
   if (p.chips) {
-    y += 34;
+    y += 44;
     ctx.font = `19px ${mono}`;
     ctx.letterSpacing = tracking(0.1, 19);
     let chipX = left;
@@ -823,16 +846,16 @@ async function drawPlate(
       if (chipX + w > CARD_W - left) break;
       ctx.strokeStyle = p.textInk;
       ctx.lineWidth = 1;
-      ctx.strokeRect(chipX, y, w, 33);
+      ctx.strokeRect(chipX, y, w, 38);
       ctx.fillStyle = p.textInk;
-      ctx.fillText(label, chipX + 14, y + 8);
+      ctx.fillText(label, chipX + 14, y + 11);
       chipX += w + 10;
     }
     ctx.letterSpacing = '0px';
   }
 
   // Footer row, pinned to the bottom of the panel.
-  const footY = CARD_H - 44;
+  const footY = CARD_H - 56;
   ctx.textBaseline = 'alphabetic';
   ctx.fillStyle = p.meta;
   ctx.font = `21px ${mono}`;
