@@ -93,9 +93,16 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
        * the last template. Resetting once the sizes are final is what actually
        * holds.
        */
-      const rail = railRef.current;
-      if (rail) rail.scrollLeft = 0;
-      setActive(0);
+      /*
+       * A frame later, so the pin lands after the browser has laid out the
+       * canvases it has just been given. Setting it in the same tick is still
+       * racing the reflow that the drawing causes.
+       */
+      requestAnimationFrame(() => {
+        const rail = railRef.current;
+        if (rail) rail.scrollLeft = 0;
+        setActive(0);
+      });
     });
 
     return () => {
@@ -144,13 +151,23 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
   const onScroll = useCallback(() => {
     const rail = railRef.current;
     if (!rail) return;
-    const middle = rail.scrollLeft + rail.clientWidth / 2;
+    /*
+     * Measured with bounding rects, not offsetLeft.
+     *
+     * offsetLeft is relative to the nearest POSITIONED ancestor, and the rail
+     * is not positioned — so the offsets came back in the dialog's frame while
+     * scrollLeft was in the rail's, and the two disagreed by the rail's own
+     * inset. The dot lit one card ahead of the one actually centred.
+     *
+     * Rects are all in the viewport's frame, so there is nothing to reconcile.
+     */
+    const railBox = rail.getBoundingClientRect();
+    const middle = railBox.left + railBox.width / 2;
     let nearest = 0;
     let best = Infinity;
     Array.from(rail.children).forEach((child, i) => {
-      const el = child as HTMLElement;
-      const centre = el.offsetLeft + el.offsetWidth / 2;
-      const distance = Math.abs(centre - middle);
+      const box = (child as HTMLElement).getBoundingClientRect();
+      const distance = Math.abs(box.left + box.width / 2 - middle);
       if (distance < best) {
         best = distance;
         nearest = i;
@@ -209,9 +226,11 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        // The rail takes whatever is left after the controls, rather than both
-        // being centred with dead space above and below.
-        justifyContent: 'space-between',
+        // Card and controls centre together as one group, so the buttons sit
+        // just under the card instead of at the far bottom of the screen with
+        // a gap between.
+        justifyContent: 'center',
+        gap: 14,
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
       }}
@@ -219,13 +238,11 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
       {/*
         The rail.
 
-        Cards take 88% of the width, so the next one shows at the edge. That
+        Cards take 92% of the width, so the next one shows at the edge. That
         sliver is the whole reason this is a rail rather than one card with
         buttons beneath it — nothing else says "there are more" as immediately,
         and it costs no interface to say it. Wide enough to fill the screen,
-        narrow enough that the neighbour still shows: below about 85% the card
-        stops feeling like the subject, above about 90% the peek stops reading
-        as a card.
+        narrow enough that the neighbour still shows.
 
         The snapping is the browser's. `scroll-snap-type` with a centred
         alignment gives the flick, the settle and the momentum that a
@@ -240,16 +257,13 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           alignItems: 'center',
           gap: 10,
           width: '100%',
-          // Takes the height the controls do not, so the cards are as large as
-          // the screen allows rather than capped at a guessed viewport
-          // fraction.
-          flex: 1,
+          flex: '0 1 auto',
           minHeight: 0,
           overflowX: 'auto',
           overflowY: 'hidden',
           scrollSnapType: 'x mandatory',
           // This padding is what lets the first and last cards reach the centre.
-          padding: '0 6%',
+          padding: '0 4%',
           scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
         }}
@@ -258,12 +272,12 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           <div
             key={template.id}
             style={{
-              flex: '0 0 88%',
+              flex: '0 0 92%',
               scrollSnapAlign: 'center',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              height: '100%',
+
             }}
           >
             <canvas
@@ -277,7 +291,8 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
                 // Whichever of the two binds first: wide screens run out of
                 // height, narrow ones run out of width.
                 maxWidth: '100%',
-                maxHeight: '100%',
+                // Leaves room for the dots and the two buttons beneath.
+                maxHeight: '74vh',
                 width: 'auto',
                 height: 'auto',
                 objectFit: 'contain',
@@ -299,7 +314,6 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           flexDirection: 'column',
           alignItems: 'center',
           gap: 12,
-          paddingTop: 14,
           flexShrink: 0,
           fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
           color: '#F7F4E6',
