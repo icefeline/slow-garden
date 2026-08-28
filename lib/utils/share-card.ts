@@ -526,7 +526,7 @@ export async function drawStamp(
 
   ctx.fillStyle = PAPER;
   ctx.font = `44px ${term}`;
-  const prompt = firstQuestions(card.uprightMeaning, 2);
+  const prompt = firstQuestions(meaningOf(card, isReversed), 2);
   drawLines(ctx, wrap(ctx, prompt, CARD_W - 128, 6), 64, 1500, 54);
 
   // ── the closing rules ─────────────────────────────────────────────────
@@ -586,6 +586,27 @@ function firstQuestions(meaning: string, count: number): string {
 /** Page, knight, queen, king — numbered in the data, unnumbered on the card. */
 function isCourt(cardId: string): boolean {
   return /-(page|knight|queen|king)$/.test(cardId);
+}
+
+/**
+ * The deck holds two readings of every card, and until now the share cards
+ * only ever showed one.
+ *
+ * Meaning and keywords both have a reversed form, and they are not variations
+ * on the upright — the Devil upright asks what binds you, reversed it asks
+ * what you are ready to release. A reversed draw showing the upright text is
+ * not a formatting slip; it is the wrong reading on the card.
+ *
+ * Description and the memory passage have no reversed form in the deck, so
+ * both orientations share them. That is the data's shape, not an oversight
+ * here.
+ */
+function meaningOf(card: TarotCard, isReversed: boolean): string {
+  return isReversed ? card.reversedMeaning : card.uprightMeaning;
+}
+
+function keywordsOf(card: TarotCard, isReversed: boolean): string[] {
+  return isReversed ? card.reversedKeywords : card.uprightKeywords;
 }
 
 /**
@@ -827,7 +848,7 @@ const SPLIT_Y = 1180;
 
 async function drawPlate(
   canvas: HTMLCanvasElement,
-  { card, date, drawnAt }: ShareContext,
+  { card, isReversed, date, drawnAt }: ShareContext,
   p: PlatePalette
 ): Promise<void> {
   await fontsReady();
@@ -932,7 +953,22 @@ async function drawPlate(
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
     .toUpperCase();
   const time = formatTime(drawnAt);
-  ctx.fillText(time ? `DRAWN ${stamp} · ${time}` : `DRAWN ${stamp}`, left, y);
+  /*
+   * Reversed is said; upright is not. The plates now carry the reversed
+   * meaning and keywords, and a card whose text has changed without saying why
+   * reads as a different card rather than the same one the other way up. The
+   * stamp and the trace label both orientations because their caption line is
+   * a fixed shape; here the line is a date, and "upright" on every card would
+   * be noise on seventy-eight of them to be useful on the few.
+   */
+  const drawnLine = [
+    `DRAWN ${stamp}`,
+    time || null,
+    isReversed ? 'REVERSED' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+  ctx.fillText(drawnLine, left, y);
   ctx.letterSpacing = '0px';
   y += 22 + 42;
 
@@ -975,7 +1011,7 @@ async function drawPlate(
     ctx.font = `19px ${mono}`;
     ctx.letterSpacing = tracking(0.1, 19);
     let chipX = left;
-    for (const word of card.uprightKeywords) {
+    for (const word of keywordsOf(card, isReversed)) {
       const label = word.toUpperCase();
       const w = ctx.measureText(label).width + 28;
       if (chipX + w > CARD_W - left) break;
@@ -1022,7 +1058,7 @@ async function drawPlate(
   ctx.fillStyle = p.meta;
   ctx.font = `21px ${mono}`;
   const askWidth = CARD_W - left * 2 - markW - 28;
-  const ask = wrap(ctx, firstClause(card.uprightMeaning).toUpperCase(), askWidth, 2);
+  const ask = wrap(ctx, firstClause(meaningOf(card, isReversed)).toUpperCase(), askWidth, 2);
   // Drawn upward from the baseline, so the last line always sits on the
   // wordmark's line however many there are.
   ask.forEach((line, i) => {
