@@ -101,6 +101,63 @@ function dotPattern(ctx: CanvasRenderingContext2D, size: number, colour: string)
   return ctx.createPattern(tile, 'repeat');
 }
 
+/** The spec gives tracking in em; canvas only takes px. */
+function tracking(em: number, size: number): string {
+  return `${(em * size).toFixed(2)}px`;
+}
+
+/**
+ * The stamp tooth.
+ *
+ * The design punches it with six layered radial masks; canvas gets there by
+ * drawing the stamp first and then removing half-circles around the perimeter
+ * with `destination-out`. 13px radius on a 26px repeat, which is the spec's
+ * cut-out and pitch.
+ */
+function perforate(ctx: CanvasRenderingContext2D, w: number, h: number) {
+  const r = 13;
+  const pitch = 26;
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = '#000';
+  const punch = (x: number, y: number) => {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  for (let x = r; x <= w; x += pitch) {
+    punch(x, 0);
+    punch(x, h);
+  }
+  for (let y = r; y <= h; y += pitch) {
+    punch(0, y);
+    punch(w, y);
+  }
+  ctx.restore();
+}
+
+/**
+ * The radial dot dither — the spec's second screen, distinct from the conic
+ * checker: `radial-gradient(color 34-42%, transparent 40-46%)` on a 7-9px cell.
+ */
+function ditherPattern(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  colour: string,
+  radiusRatio: number
+): CanvasPattern | null {
+  const tile = document.createElement('canvas');
+  tile.width = size;
+  tile.height = size;
+  const t = tile.getContext('2d');
+  if (!t) return null;
+  t.fillStyle = colour;
+  t.beginPath();
+  t.arc(size / 2, size / 2, size * radiusRatio, 0, Math.PI * 2);
+  t.fill();
+  return ctx.createPattern(tile, 'repeat');
+}
+
 /** Wrap to a measure, in canvas rather than CSS, and cap the number of lines. */
 function wrap(
   ctx: CanvasRenderingContext2D,
@@ -163,6 +220,7 @@ function marquee(
   ctx.fillRect(0, y, CARD_W, height);
   ctx.fillStyle = INK;
   ctx.font = font;
+  ctx.letterSpacing = tracking(0.06, 42);
   ctx.textBaseline = 'middle';
   const unit = ctx.measureText(text).width;
   for (let x = 16; x < CARD_W; x += unit) {
@@ -222,7 +280,10 @@ export async function drawStamp(
     ctx.save();
     ctx.globalAlpha = 0.16;
     ctx.fillStyle = dots;
-    ctx.fillRect(0, 0, CARD_W, CARD_H);
+    // The spec offsets the screen 9px from the top so it does not line up with
+    // the marquee's edge.
+    ctx.translate(0, 9);
+    ctx.fillRect(0, -9, CARD_W, CARD_H);
     ctx.restore();
   }
 
@@ -237,7 +298,7 @@ export async function drawStamp(
   ctx.fillStyle = PAPER;
   ctx.font = `22px ${mono}`;
   ctx.textBaseline = 'middle';
-  ctx.letterSpacing = '4px';
+  ctx.letterSpacing = tracking(0.22, 22);
   ctx.fillText('SLOW GARDEN', 64, 138);
   ctx.fillStyle = LIME;
   ctx.textAlign = 'right';
@@ -251,76 +312,106 @@ export async function drawStamp(
   const stampW = 600;
   const stampX = (CARD_W - stampW) / 2;
   const stampY = 250;
-  const pad = 26;
-  const artW = stampW - pad * 2;
+  // The spec's asymmetric padding: 24 top, 26 sides, 28 bottom.
+  const padX = 26;
+  const padTop = 24;
+  const padBottom = 28;
+  const artW = stampW - padX * 2;
   const artH = Math.round(artW * 1.5); // the 2:3 the design gives the art
-  const stampH = pad + 180 + artH + 60;
+  const stampH = padTop + 180 + artH + 44 + padBottom;
 
-  ctx.fillStyle = PAPER;
-  ctx.fillRect(stampX, stampY, stampW, stampH);
+  /*
+   * The stamp is drawn on its own surface so the tooth can be cut out of it.
+   * Punching `destination-out` arcs straight onto the card would take the
+   * cobalt field with them and leave holes through to nothing.
+   */
+  const stamp = document.createElement('canvas');
+  stamp.width = stampW;
+  stamp.height = stampH;
+  const sctx = stamp.getContext('2d');
+  if (!sctx) throw new Error('no stamp context');
+
+  sctx.fillStyle = PAPER;
+  sctx.fillRect(0, 0, stampW, stampH);
 
   // The card name, one word per line, as the design sets it.
-  ctx.fillStyle = INK;
-  ctx.font = `700 60px ${sans}`;
-  ctx.textBaseline = 'top';
+  sctx.fillStyle = INK;
+  sctx.font = `700 60px ${sans}`;
+  sctx.letterSpacing = tracking(-0.02, 60);
+  sctx.textBaseline = 'top';
   const words = card.name.replace(/^The /i, '').toUpperCase().split(' ');
-  let ny = stampY + pad;
+  let ny = padTop;
   for (const word of words) {
-    ctx.fillText(word, stampX + pad, ny);
-    ny += 56;
+    sctx.fillText(word, padX, ny);
+    ny += 56; // 60px at the spec's .94 leading
   }
+  sctx.letterSpacing = '0px';
 
   // The numeral, where the card has one — the pips carry it too, which is
   // where the design's IX on the Nine of Cups comes from. Court cards have no
   // number and correctly get nothing.
   if (typeof card.number === 'number' && card.number > 0) {
-    ctx.fillStyle = COBALT;
-    ctx.font = `700 52px ${sans}`;
-    ctx.textAlign = 'right';
-    ctx.fillText(toRoman(card.number), stampX + stampW - pad, stampY + pad);
-    ctx.textAlign = 'left';
+    sctx.fillStyle = COBALT;
+    sctx.font = `700 52px ${sans}`;
+    sctx.textAlign = 'right';
+    sctx.fillText(toRoman(card.number), stampW - padX, padTop);
+    sctx.textAlign = 'left';
   }
 
-  const artY = stampY + pad + 180;
+  const artYLocal = padTop + 180;
   try {
     const art = await loadImage(cardImageSrc(card));
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(stampX + pad, artY, artW, artH);
-    ctx.clip();
-    // grayscale + contrast, then multiplied over the gradient beneath, which is
-    // what the design's filter chain amounts to.
-    const grad = ctx.createLinearGradient(stampX, artY, stampX + artW, artY + artH);
+    sctx.save();
+    sctx.beginPath();
+    sctx.rect(padX, artYLocal, artW, artH);
+    sctx.clip();
+
+    // The gradient the art is multiplied onto, at the spec's 165deg.
+    const grad = sctx.createLinearGradient(padX, artYLocal, padX + artW, artYLocal + artH);
     grad.addColorStop(0, LIME);
     grad.addColorStop(0.46, '#3f9f6a');
     grad.addColorStop(1, COBALT);
-    ctx.fillStyle = grad;
-    ctx.fillRect(stampX + pad, artY, artW, artH);
+    sctx.fillStyle = grad;
+    sctx.fillRect(padX, artYLocal, artW, artH);
 
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.filter = 'grayscale(1) contrast(1.55) brightness(1.08)';
-    drawCover(ctx, art, stampX + pad, artY, artW, artH);
-    ctx.filter = 'none';
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.restore();
+    sctx.globalCompositeOperation = 'multiply';
+    sctx.filter = 'grayscale(1) contrast(1.55) brightness(1.08)';
+    drawCover(sctx, art, padX, artYLocal, artW, artH);
+    sctx.filter = 'none';
+
+    // The bone dot screen over the window — the spec's 9px cell at .6.
+    const screen = ditherPattern(sctx, 9, PAPER, 0.42);
+    if (screen) {
+      sctx.globalCompositeOperation = 'screen';
+      sctx.globalAlpha = 0.6;
+      sctx.fillStyle = screen;
+      sctx.fillRect(padX, artYLocal, artW, artH);
+      sctx.globalAlpha = 1;
+    }
+    sctx.globalCompositeOperation = 'source-over';
+    sctx.restore();
   } catch {
-    // Art missing — the stamp still reads, and a share is better than an error.
-    ctx.fillStyle = COBALT;
-    ctx.fillRect(stampX + pad, artY, artW, artH);
+    // Art missing — the stamp still reads, and a share beats an error.
+    sctx.fillStyle = COBALT;
+    sctx.fillRect(padX, artYLocal, artW, artH);
   }
 
-  ctx.fillStyle = '#5d6b52';
-  ctx.font = `18px ${mono}`;
-  ctx.letterSpacing = '3px';
-  ctx.fillText(
+  sctx.fillStyle = '#5d6b52';
+  sctx.font = `18px ${mono}`;
+  sctx.letterSpacing = tracking(0.16, 18);
+  sctx.fillText(
     `${isReversed ? 'REVERSED' : 'UPRIGHT'} · ${SUIT_ELEMENT[card.suite] ?? ''}`,
-    stampX + pad,
-    artY + artH + 18
+    padX,
+    artYLocal + artH + 18
   );
-  ctx.textAlign = 'right';
-  ctx.fillText('SLOW GARDEN', stampX + stampW - pad, artY + artH + 18);
-  ctx.textAlign = 'left';
-  ctx.letterSpacing = '0px';
+  sctx.textAlign = 'right';
+  sctx.fillText('SLOW GARDEN', stampW - padX, artYLocal + artH + 18);
+  sctx.textAlign = 'left';
+  sctx.letterSpacing = '0px';
+
+  // The tooth, then the finished stamp onto the card.
+  perforate(sctx, stampW, stampH);
+  ctx.drawImage(stamp, stampX, stampY);
 
   // ── the prompt ────────────────────────────────────────────────────────
   ctx.fillStyle = LIME;
@@ -338,7 +429,7 @@ export async function drawStamp(
   ctx.fillStyle = PAPER;
   ctx.font = `22px ${mono}`;
   ctx.textBaseline = 'middle';
-  ctx.letterSpacing = '4px';
+  ctx.letterSpacing = tracking(0.2, 22);
   ctx.fillText('ONE CARD A DAY', 64, CARD_H - 134);
   ctx.fillStyle = LIME;
   ctx.textAlign = 'right';
