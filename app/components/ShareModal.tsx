@@ -287,18 +287,27 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
       canvas.toBlob((blob) => {
         if (!blob) return resolve(null);
         /*
-         * Named for a person, not for the codebase. It was saving as
-         * "slow-garden-pentacles-queen-plate-dark.png", which is the card's
-         * internal id and the template's — meaningful here and meaningless in
-         * a camera roll. The card's own name and the day it was drawn is what
-         * someone would look for.
+         * Named for a person, not for the codebase — and dated first, so a
+         * year of these sits in order in a file list rather than alphabetically
+         * by card. It was saving as "slow-garden-pentacles-queen-plate-dark",
+         * the card's internal id and the template's: meaningful here and
+         * meaningless in a camera roll.
+         *
+         * The date is built from the parts rather than formatted, because
+         * toISOString would convert to UTC first and hand back the previous
+         * day for anyone east of Greenwich drawing before eight in the
+         * morning — the same trap the app's own date keys avoid.
          */
-        const day = date.toLocaleDateString('en-GB', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        });
-        const name = `slow garden — ${card.name} — ${day}.png`;
+        const stamp = [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, '0'),
+          String(date.getDate()).padStart(2, '0'),
+        ].join('-');
+        const slug = card.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        const name = `${stamp}_${slug}.png`;
         resolve(new File([blob], name, { type: 'image/png' }));
       }, 'image/png');
     });
