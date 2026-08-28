@@ -428,7 +428,12 @@ export async function drawStamp(
   sctx.font = `700 60px ${sans}`;
   sctx.letterSpacing = tracking(-0.02, 60);
   sctx.textBaseline = 'top';
-  const words = card.name.replace(/^The /i, '').toUpperCase().split(' ');
+  /*
+   * The full name, article included — THE / FOOL, not FOOL. Dropping it made
+   * the majors read as labels rather than as the cards they are, and it is the
+   * only place in the app that renamed them.
+   */
+  const words = card.name.toUpperCase().split(' ');
   let ny = padTop;
   for (const word of words) {
     sctx.fillText(word, padX, ny);
@@ -444,8 +449,12 @@ export async function drawStamp(
    * hold a number in the deck data, 11 through 14, so a truthy check is not
    * enough: it printed XIII on the Queen of Pentacles, which is the same
    * mistake the mock made and for the same reason.
+   *
+   * The Fool is 0 and shows it. Guarding on `number > 0` dropped it silently,
+   * which is why one major arcana card had no numeral while the other
+   * twenty-one did — it looked arbitrary because it was.
    */
-  if (typeof card.number === 'number' && card.number > 0 && !isCourt(card.id)) {
+  if (typeof card.number === 'number' && !isCourt(card.id)) {
     sctx.fillStyle = COBALT;
     sctx.font = `700 52px ${sans}`;
     sctx.textAlign = 'right';
@@ -577,6 +586,27 @@ function firstQuestions(meaning: string, count: number): string {
 /** Page, knight, queen, king — numbered in the data, unnumbered on the card. */
 function isCourt(cardId: string): boolean {
   return /-(page|knight|queen|king)$/.test(cardId);
+}
+
+/**
+ * The question, cut at its first clause.
+ *
+ * The meanings ask one thing and then extend it — "Where in your life are you
+ * being called to begin again, to step toward something that excites and
+ * terrifies you in equal measure?" The part before the comma is the question;
+ * what follows is elaboration, and on a card it is the part that runs out of
+ * room. Cut there and the line reads as a question rather than as a paragraph
+ * with a mark at the end.
+ *
+ * Across the deck this takes the longest from 129 characters to 101 and the
+ * median to 49. The footer still wraps, because 21 cards remain longer than a
+ * single line — this shortens the ask, it does not guarantee it fits.
+ */
+function firstClause(meaning: string): string {
+  const question = firstQuestions(meaning, 1).trim();
+  const head = question.split(',')[0].trim();
+  if (!head || head === question) return question;
+  return head.endsWith('?') ? head : `${head}?`;
 }
 
 function toRoman(n: number): string {
@@ -967,12 +997,38 @@ async function drawPlate(
     ctx.letterSpacing = '0px';
   }
 
-  // Footer row, pinned to the bottom of the panel.
+  /*
+   * Footer row, pinned to the bottom of the panel.
+   *
+   * The question wraps rather than running under the wordmark. It was drawn as
+   * one unbounded line, and across the deck that is not an edge case: the
+   * questions run to a median of 49 characters and a maximum of 129, and 44 of
+   * the 78 cards overflowed the space beside the wordmark.
+   *
+   * Truncating would therefore have cut most of the deck rather than a few
+   * outliers, and shortening means rewriting authored questions to fit a
+   * layout — the wrong way round. Two lines hold everything up to about 110
+   * characters; the one card longer than that ends in an ellipsis.
+   *
+   * The wordmark is measured rather than assumed, so the question's measure
+   * stays correct if either ever changes.
+   */
   const footY = CARD_H - 56;
   ctx.textBaseline = 'alphabetic';
+
+  ctx.font = `40px ${term}`;
+  const markW = ctx.measureText('SLOWWW.GARDEN').width;
+
   ctx.fillStyle = p.meta;
   ctx.font = `21px ${mono}`;
-  ctx.fillText(firstQuestions(card.uprightMeaning, 1).toUpperCase(), left, footY);
+  const askWidth = CARD_W - left * 2 - markW - 28;
+  const ask = wrap(ctx, firstClause(card.uprightMeaning).toUpperCase(), askWidth, 2);
+  // Drawn upward from the baseline, so the last line always sits on the
+  // wordmark's line however many there are.
+  ask.forEach((line, i) => {
+    ctx.fillText(line, left, footY - (ask.length - 1 - i) * 26);
+  });
+
   ctx.fillStyle = p.textInk;
   ctx.font = `40px ${term}`;
   ctx.textAlign = 'right';

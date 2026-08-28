@@ -437,7 +437,23 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         {TEMPLATES.map((template, i) => (
           <div
             key={template.id}
+            /*
+             * Clicking a card brings it to the middle.
+             *
+             * Swiping is the whole gesture on a phone, but with a mouse there
+             * is no swipe — a trackpad can flick the rail sideways and a mouse
+             * cannot, so the neighbours were visible and unreachable. Clicking
+             * the one you want is the obvious thing to try, and it now does
+             * what it looks like it should.
+             */
+            onClick={(e) => {
+              e.stopPropagation();
+              if (i === active) return;
+              centre(i, true);
+              setActive(i);
+            }}
             style={{
+              cursor: i === active ? 'default' : 'pointer',
               // Sized from the measured card, so the item and the card it holds
               // are the same width — percentages let those two disagree, and
               // the end spacing was then sized against the wrong one.
