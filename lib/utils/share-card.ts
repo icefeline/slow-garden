@@ -79,6 +79,85 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
+/**
+ * The filter chains, done in pixels.
+ *
+ * `ctx.filter` is not supported by WebKit on iOS — it is accepted and then
+ * ignored, with no error — so every treatment in these designs silently did
+ * nothing on an iPhone. The art drew in full colour with only the blend mode
+ * applied, which is why the bleed came out lilac instead of cobalt. It worked
+ * in a desktop Chromium, which is exactly how it survived being checked.
+ *
+ * Doing the arithmetic by hand costs one pass over the pixels and behaves the
+ * same in every browser. The operations follow CSS's own definitions and are
+ * applied in the order given, as a filter list is.
+ */
+export interface Treatment {
+  grayscale?: boolean;
+  invert?: boolean;
+  /** 1 leaves it alone; above 1 pushes darks and lights apart. */
+  contrast?: number;
+  brightness?: number;
+}
+
+function treated(
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+  t: Treatment,
+  posX = 0.5,
+  posY = 0.5,
+  pixelated = false
+): HTMLCanvasElement {
+  const out = document.createElement('canvas');
+  out.width = Math.max(1, Math.round(w));
+  out.height = Math.max(1, Math.round(h));
+  const c = out.getContext('2d', { willReadFrequently: true });
+  if (!c) return out;
+
+  c.imageSmoothingEnabled = !pixelated;
+  drawCover(c, img, 0, 0, out.width, out.height, posX, posY);
+
+  const frame = c.getImageData(0, 0, out.width, out.height);
+  const px = frame.data;
+  const contrast = t.contrast ?? 1;
+  const brightness = t.brightness ?? 1;
+
+  for (let i = 0; i < px.length; i += 4) {
+    let r = px[i];
+    let g = px[i + 1];
+    let b = px[i + 2];
+
+    if (t.grayscale) {
+      // Rec. 601 luma, the same weighting CSS uses.
+      const l = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = g = b = l;
+    }
+    if (t.invert) {
+      r = 255 - r;
+      g = 255 - g;
+      b = 255 - b;
+    }
+    if (contrast !== 1) {
+      r = (r - 128) * contrast + 128;
+      g = (g - 128) * contrast + 128;
+      b = (b - 128) * contrast + 128;
+    }
+    if (brightness !== 1) {
+      r *= brightness;
+      g *= brightness;
+      b *= brightness;
+    }
+
+    px[i] = r < 0 ? 0 : r > 255 ? 255 : r;
+    px[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+    px[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+  }
+
+  c.putImageData(frame, 0, 0);
+  return out;
+}
+
 /** The deck's art is PNG under a different name than the card id alone. */
 export function cardImageSrc(card: TarotCard): string {
   if (card.id.startsWith('major-')) {
@@ -391,9 +470,11 @@ export async function drawStamp(
     sctx.fillRect(padX, artYLocal, artW, artH);
 
     sctx.globalCompositeOperation = 'multiply';
-    sctx.filter = 'grayscale(1) contrast(1.55) brightness(1.08)';
-    drawCover(sctx, art, padX, artYLocal, artW, artH);
-    sctx.filter = 'none';
+    sctx.drawImage(
+      treated(art, artW, artH, { grayscale: true, contrast: 1.55, brightness: 1.08 }),
+      padX,
+      artYLocal
+    );
 
     // The bone dot screen over the window — the spec's 9px cell at .6.
     const screen = ditherPattern(sctx, 9, PAPER, 0.42);
@@ -558,12 +639,20 @@ export async function drawPixelBleed(
     ctx.save();
     ctx.globalCompositeOperation = 'screen';
     ctx.globalAlpha = 0.9;
-    ctx.imageSmoothingEnabled = false;
-    ctx.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
     // object-position: 50% 42% — the frame sits a little above centre.
-    drawCover(ctx, art, 0, 0, CARD_W, CARD_H, 0.5, 0.42);
-    ctx.filter = 'none';
-    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(
+      treated(
+        art,
+        CARD_W,
+        CARD_H,
+        { grayscale: true, contrast: 1.5, brightness: 1.1 },
+        0.5,
+        0.42,
+        true
+      ),
+      0,
+      0
+    );
     ctx.restore();
   } catch {
     // no art — the field and the type still carry the card
@@ -631,7 +720,7 @@ export async function drawPixelBleed(
  */
 interface PlatePalette {
   panelBg: string;
-  artFilter: string;
+  artTreatment: Treatment;
   artBlend: GlobalCompositeOperation;
   ditherCell: number;
   ditherRatio: number;
@@ -653,7 +742,7 @@ interface PlatePalette {
 
 const PLATE_DARK: PlatePalette = {
   panelBg: '#1b3d5c',
-  artFilter: 'grayscale(1) invert(1) contrast(6) brightness(1.35)',
+  artTreatment: { grayscale: true, invert: true, contrast: 6, brightness: 1.35 },
   artBlend: 'screen',
   ditherCell: 8,
   ditherRatio: 0.36,
@@ -675,7 +764,7 @@ const PLATE_DARK: PlatePalette = {
 
 const PLATE_LIGHT: PlatePalette = {
   panelBg: '#c9e0a8',
-  artFilter: 'grayscale(1) contrast(9) brightness(.75)',
+  artTreatment: { grayscale: true, contrast: 9, brightness: 0.75 },
   artBlend: 'multiply',
   ditherCell: 7,
   ditherRatio: 0.34,
@@ -722,9 +811,7 @@ async function drawPlate(
     layer.height = SPLIT_Y;
     const lc = layer.getContext('2d');
     if (lc) {
-      lc.filter = p.artFilter;
-      drawCover(lc, art, 0, 0, CARD_W, SPLIT_Y);
-      lc.filter = 'none';
+      lc.drawImage(treated(art, CARD_W, SPLIT_Y, p.artTreatment), 0, 0);
 
       // Punch the dot grid: keep only what falls inside a dot.
       const dots = ditherPattern(lc, p.ditherCell, '#000', p.ditherRatio);
@@ -906,9 +993,11 @@ export async function drawAsciiTrace(
     art = await loadImage(cardImageSrc(card));
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
-    ctx.filter = 'grayscale(1) contrast(.95) brightness(1.06)';
-    drawCover(ctx, art, 0, 0, CARD_W, CARD_H, 0.5, 0.38);
-    ctx.filter = 'none';
+    ctx.drawImage(
+      treated(art, CARD_W, CARD_H, { grayscale: true, contrast: 0.95, brightness: 1.06 }, 0.5, 0.38),
+      0,
+      0
+    );
     ctx.restore();
   } catch {
     // no art — the trace has nothing to read, and the type still stands
