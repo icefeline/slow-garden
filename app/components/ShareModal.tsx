@@ -71,6 +71,7 @@ function canShareFiles(file: File): boolean {
 export default function ShareModal({ card, isReversed, date, drawnAt, onClose }: ShareModalProps) {
   const canvasRefs = useRef<Array<HTMLCanvasElement | null>>([]);
   const railRef = useRef<HTMLDivElement>(null);
+  const spaceRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -97,7 +98,15 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
   const [rail, setRail] = useState<{ w: number; h: number } | null>(null);
 
   useEffect(() => {
-    const el = railRef.current;
+    /*
+     * Measured on the wrapper rather than on the rail.
+     *
+     * The rail is about to be sized to the card, and sizing a thing from its
+     * own measurement is a loop: shrink the rail, re-measure, shrink again.
+     * The wrapper just holds whatever room the title and controls leave, so it
+     * is a stable thing to measure against.
+     */
+    const el = spaceRef.current;
     if (!el) return;
     const measure = () => {
       if (el.clientWidth && el.clientHeight) {
@@ -121,7 +130,17 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
    */
   const box = rail
     ? (() => {
-        const widest = rail.w * 0.8;
+        /*
+         * The width cap is deliberately close to the full width, so the card
+         * is bounded by HEIGHT rather than width in almost every case.
+         *
+         * A tighter cap left the card shorter than the space it sat in, and
+         * that leftover pushed the title and the arrows away from it — the
+         * gaps above and below were slack, not spacing. Letting the card take
+         * the height available closes them, and the peek that remains is what
+         * the aspect ratio leaves over.
+         */
+        const widest = rail.w * 0.95;
         const h = Math.min(rail.h, widest * (CARD_H / CARD_W));
         const w = h * (CARD_W / CARD_H);
         return { w, h, edge: Math.max(0, (rail.w - w) / 2) };
@@ -331,7 +350,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         // just under the card instead of at the far bottom of the screen with
         // a gap between.
         justifyContent: 'center',
-        gap: 16,
+        gap: 10,
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
       }}
@@ -371,13 +390,23 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         hand-built carousel spends hundreds of lines failing to imitate.
       */}
       <div
+        ref={spaceRef}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          flex: '1 1 auto',
+          minHeight: 0,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+      <div
         ref={railRef}
         onScroll={onScroll}
-        onClick={(e) => e.stopPropagation()}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 4,
+          gap: 14,
           width: '100%',
           /*
            * The rail takes the room the title and controls leave, and the
@@ -386,8 +415,9 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
            * rail then shrank under a card taller than itself and clipped its
            * top and bottom, which is what cut the edges off.
            */
-          flex: '1 1 auto',
-          minHeight: 0,
+          // Exactly the card's height, so the arrows sit right beneath it
+          // rather than beneath the leftover space around it.
+          height: box ? box.h : '100%',
           overflowX: 'auto',
           overflowY: 'hidden',
           scrollSnapType: 'x mandatory',
@@ -441,6 +471,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           </div>
         ))}
       </div>
+      </div>
 
       <div
         onClick={(e) => e.stopPropagation()}
@@ -448,7 +479,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 12,
+          gap: 10,
           flexShrink: 0,
           fontFamily: 'var(--font-vt323), monospace',
           color: MENU_INK,
