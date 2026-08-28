@@ -542,34 +542,28 @@ export async function drawPixelBleed(
   try {
     const art = await loadImage(cardImageSrc(card));
     /*
-     * Down and back up with smoothing off, which is what pixelation is.
+     * `image-rendering: pixelated`, which is not what I first took it for.
      *
-     * A quarter, not an eighth. At an eighth the source is 135px across and
-     * there is simply not enough left of the picture — it stops reading as a
-     * pixelated bear and starts reading as a blurred one. A quarter keeps the
-     * grid clearly visible while the subject survives it.
+     * It does not reduce the image. It turns off smoothing while the browser
+     * ENLARGES one — and this art is 896x1344 being scaled about 1.43x to
+     * cover a 9:16 frame, so what the spec asks for is a crisp
+     * nearest-neighbour upscale: hard edges, every source pixel intact.
      *
-     * Note the grid looks softer in any preview that scales the card down,
-     * because the browser resamples those hard edges away. The exported PNG is
-     * full size and keeps them.
+     * Downsampling first, as this did, threw away three quarters of the
+     * picture before enlarging what was left. No choice of divisor recovers
+     * that; the result is soft because the detail is gone, not because the
+     * blocks are too small.
      */
-    const PIXEL_DIVISOR = 4;
-    const small = document.createElement('canvas');
-    small.width = Math.round(CARD_W / PIXEL_DIVISOR);
-    small.height = Math.round(CARD_H / PIXEL_DIVISOR);
-    const sm = small.getContext('2d');
-    if (sm) {
-      sm.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
-      // object-position: 50% 42% — the frame sits a little above centre.
-      drawCover(sm, art, 0, 0, small.width, small.height, 0.5, 0.42);
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = 0.9;
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(small, 0, 0, CARD_W, CARD_H);
-      ctx.imageSmoothingEnabled = true;
-      ctx.restore();
-    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.globalAlpha = 0.9;
+    ctx.imageSmoothingEnabled = false;
+    ctx.filter = 'grayscale(1) contrast(1.5) brightness(1.1)';
+    // object-position: 50% 42% — the frame sits a little above centre.
+    drawCover(ctx, art, 0, 0, CARD_W, CARD_H, 0.5, 0.42);
+    ctx.filter = 'none';
+    ctx.imageSmoothingEnabled = true;
+    ctx.restore();
   } catch {
     // no art — the field and the type still carry the card
   }
