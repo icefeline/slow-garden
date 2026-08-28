@@ -1,31 +1,33 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TarotCard } from '@/lib/types/tarot';
 import {
   drawStamp,
   drawPixelBleed,
   drawPlateDark,
   drawPlateLight,
-  drawAsciiTrace,
   CARD_W,
   CARD_H,
   type ShareContext,
 } from '@/lib/utils/share-card';
 
 /**
- * The share sheet.
+ * The templates on offer.
  *
- * Four templates, and the reader picks. They differ in what they carry as much
- * as in how they look — the stamp asks a question, the plates give the
- * description or the memory passage — so the choice is editorial, not a skin.
+ * They differ in what they carry as much as in how they look — the stamp asks
+ * a question, one plate gives the card's description, the other its memory
+ * passage — so the choice is editorial rather than a skin.
+ *
+ * The trace card is deliberately absent. It is built and it draws, but its
+ * character layer is authored per card and none exist yet, so it would ship as
+ * a plainer version of itself. Add it back alongside the first traces.
  */
 const TEMPLATES = [
   { id: 'stamp', label: 'stamp', draw: drawStamp },
   { id: 'bleed', label: 'bleed', draw: drawPixelBleed },
   { id: 'plate-dark', label: 'plate', draw: drawPlateDark },
   { id: 'plate-light', label: 'plate ii', draw: drawPlateLight },
-  { id: 'ascii', label: 'trace', draw: drawAsciiTrace },
 ] as const;
 
 interface ShareModalProps {
@@ -40,11 +42,10 @@ interface ShareModalProps {
  * Sharing, rather than downloading, wherever the browser has it.
  *
  * `navigator.share` with a file opens the native sheet, which is one tap from
- * Instagram Stories. A download is the fallback, and on iOS it is a poor one —
- * the file lands in Files rather than the camera roll, and the reader then has
- * to go looking for it. So where sharing is unavailable the image is simply
- * shown at size and labelled for a long press, which is what people do with
- * images on a phone anyway.
+ * Instagram Stories. A download is the fallback, and on iOS a poor one — the
+ * file lands in Files rather than the camera roll, and the reader then has to
+ * go looking for it. The card is also shown at size, where a long press saves
+ * it, which is what people do with images on a phone anyway.
  */
 function canShareFiles(file: File): boolean {
   return (
@@ -55,33 +56,55 @@ function canShareFiles(file: File): boolean {
 }
 
 export default function ShareModal({ card, isReversed, date, drawnAt, onClose }: ShareModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [template, setTemplate] = useState<(typeof TEMPLATES)[number]['id']>('stamp');
-  const [state, setState] = useState<'drawing' | 'ready' | 'failed'>('drawing');
+  const canvasRefs = useRef<Array<HTMLCanvasElement | null>>([]);
+  const railRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(0);
+  const [ready, setReady] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const context: ShareContext = { card, isReversed, date, drawnAt };
-
+  /*
+   * Every template is drawn once, when the sheet opens, rather than on demand.
+   *
+   * They all read the same card art, so every draw after the first costs only
+   * the drawing — the image is already cached. Drawing lazily as each scrolled
+   * into view would put a blank card under the reader's thumb at exactly the
+   * moment they swiped to it.
+   */
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const chosen = TEMPLATES.find((t) => t.id === template) ?? TEMPLATES[0];
     let cancelled = false;
-    setState('drawing');
-    chosen
-      .draw(canvas, context)
-      .then(() => {
-        if (!cancelled) setState('ready');
+    const context: ShareContext = { card, isReversed, date, drawnAt };
+
+    Promise.all(
+      TEMPLATES.map((template, i) => {
+        const canvas = canvasRefs.current[i];
+        if (!canvas) return Promise.resolve();
+        // One template failing must not take the others with it.
+        return template.draw(canvas, context).catch(() => undefined);
       })
-      .catch(() => {
-        if (!cancelled) setState('failed');
-      });
+    ).then(() => {
+      if (!cancelled) setReady(true);
+    });
+
     return () => {
       cancelled = true;
     };
-    // The card cannot change while the sheet is open; only the template can.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [template, card.id, isReversed]);
+  }, [card.id, isReversed]);
+
+  /*
+   * Open on the first card.
+   *
+   * The rail is a scroll container inside a dialog that appears mid-page, and
+   * browsers do not reliably start it at zero — it opened on the third
+   * template, which makes the first two look like something the reader had
+   * already passed rather than the beginning of the set.
+   */
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    rail.scrollLeft = 0;
+    setActive(0);
+  }, []);
 
   // Escape closes, and the page behind does not scroll while this is open.
   useEffect(() => {
@@ -97,13 +120,40 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
     };
   }, [onClose]);
 
+  /**
+   * Which card is centred, read from the rail's own scroll position.
+   *
+   * Scroll-snap does the moving; this only reports where it settled, so the
+   * share button acts on what the reader is actually looking at. Measured from
+   * the centre rather than the left edge, because the rail is padded so the
+   * first and last cards can reach the middle too.
+   */
+  const onScroll = useCallback(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const middle = rail.scrollLeft + rail.clientWidth / 2;
+    let nearest = 0;
+    let best = Infinity;
+    Array.from(rail.children).forEach((child, i) => {
+      const el = child as HTMLElement;
+      const centre = el.offsetLeft + el.offsetWidth / 2;
+      const distance = Math.abs(centre - middle);
+      if (distance < best) {
+        best = distance;
+        nearest = i;
+      }
+    });
+    setActive(nearest);
+  }, []);
+
   const toFile = (): Promise<File | null> =>
     new Promise((resolve) => {
-      const canvas = canvasRef.current;
+      const canvas = canvasRefs.current[active];
       if (!canvas) return resolve(null);
       canvas.toBlob((blob) => {
         if (!blob) return resolve(null);
-        resolve(new File([blob], `slow-garden-${card.id}.png`, { type: 'image/png' }));
+        const name = `slow-garden-${card.id}-${TEMPLATES[active].id}.png`;
+        resolve(new File([blob], name, { type: 'image/png' }));
       }, 'image/png');
     });
 
@@ -116,7 +166,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         await navigator.share({ files: [file] });
         return;
       } catch {
-        // Dismissed the sheet, or the share failed — fall through to saving.
+        // Dismissed, or the share failed — fall through to saving.
       }
     }
 
@@ -140,37 +190,78 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
         position: 'fixed',
         inset: 0,
         zIndex: 200,
-        background: 'rgba(10, 14, 8, .88)',
+        background: 'rgba(10, 14, 8, .9)',
         backdropFilter: 'blur(6px)',
         WebkitBackdropFilter: 'blur(6px)',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 18,
-        padding: '24px 20px',
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 24px)',
-        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
+        gap: 16,
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
       }}
     >
-      {/* The card. Stops the click so tapping the image does not close. */}
-      <canvas
-        ref={canvasRef}
-        width={CARD_W}
-        height={CARD_H}
+      {/*
+        The rail.
+
+        Cards take 78% of the width, so the next one shows at the edge. That
+        sliver is the whole reason this is a rail rather than one card with
+        buttons beneath it — nothing else says "there are more" as immediately,
+        and it costs no interface to say it.
+
+        The snapping is the browser's. `scroll-snap-type` with a centred
+        alignment gives the flick, the settle and the momentum that a
+        hand-built carousel spends hundreds of lines failing to imitate.
+      */}
+      <div
+        ref={railRef}
+        onScroll={onScroll}
         onClick={(e) => e.stopPropagation()}
         style={{
-          // Whichever of height or width binds first, so the whole card is
-          // always visible rather than cropped to the viewport's shape.
-          maxHeight: '68vh',
-          maxWidth: '100%',
-          aspectRatio: `${CARD_W} / ${CARD_H}`,
-          objectFit: 'contain',
-          display: 'block',
-          opacity: state === 'ready' ? 1 : 0.35,
-          transition: 'opacity .3s ease',
+          display: 'flex',
+          gap: 14,
+          width: '100%',
+          overflowX: 'auto',
+          scrollSnapType: 'x mandatory',
+          // This padding is what lets the first and last cards reach the centre.
+          padding: '0 11%',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
         }}
-      />
+      >
+        {TEMPLATES.map((template, i) => (
+          <div
+            key={template.id}
+            style={{
+              flex: '0 0 78%',
+              scrollSnapAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <canvas
+              ref={(el) => {
+                canvasRefs.current[i] = el;
+              }}
+              width={CARD_W}
+              height={CARD_H}
+              aria-label={template.label}
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '64vh',
+                objectFit: 'contain',
+                display: 'block',
+                // The neighbours sit back, so the centred one is clearly the
+                // one being offered rather than one of four competing.
+                opacity: ready ? (i === active ? 1 : 0.45) : 0.2,
+                transition: 'opacity .25s ease',
+              }}
+            />
+          </div>
+        ))}
+      </div>
 
       <div
         onClick={(e) => e.stopPropagation()}
@@ -178,57 +269,44 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: 14,
+          gap: 12,
           fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
           color: '#F7F4E6',
         }}
       >
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
-          {TEMPLATES.map((t) => (
-            <button
+        {/* Where you are along the rail, and how many there are. */}
+        <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+          {TEMPLATES.map((t, i) => (
+            <span
               key={t.id}
-              type="button"
-              onClick={() => setTemplate(t.id)}
               style={{
-                background: template === t.id ? '#C9F24E' : 'transparent',
-                color: template === t.id ? '#172211' : 'rgba(247,244,230,.7)',
-                border: `1px solid ${template === t.id ? '#C9F24E' : 'rgba(247,244,230,.28)'}`,
-                padding: '7px 14px',
-                fontSize: 11,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                cursor: 'pointer',
+                width: i === active ? 18 : 6,
+                height: 6,
+                background: i === active ? '#C9F24E' : 'rgba(247,244,230,.3)',
+                transition: 'width .25s ease, background .25s ease',
               }}
-            >
-              {t.label}
-            </button>
+            />
           ))}
         </div>
 
-        {state === 'failed' ? (
-          <p style={{ fontSize: 14, opacity: 0.8, margin: 0 }}>
-            couldn&apos;t draw this one. try again in a moment.
-          </p>
-        ) : (
-          <button
-            type="button"
-            onClick={share}
-            disabled={state !== 'ready'}
-            style={{
-              background: '#C9F24E',
-              color: '#172211',
-              border: 'none',
-              padding: '14px 30px',
-              fontSize: 13,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              cursor: state === 'ready' ? 'pointer' : 'default',
-              opacity: state === 'ready' ? 1 : 0.4,
-            }}
-          >
-            {saved ? 'saved' : 'share'}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={share}
+          disabled={!ready}
+          style={{
+            background: '#C9F24E',
+            color: '#172211',
+            border: 'none',
+            padding: '14px 34px',
+            fontSize: 13,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            cursor: ready ? 'pointer' : 'default',
+            opacity: ready ? 1 : 0.4,
+          }}
+        >
+          {saved ? 'saved' : 'share'}
+        </button>
 
         <button
           type="button"
@@ -236,7 +314,7 @@ export default function ShareModal({ card, isReversed, date, drawnAt, onClose }:
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(247, 244, 230, .6)',
+            color: 'rgba(247, 244, 230, .55)',
             fontSize: 12,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
