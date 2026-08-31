@@ -45,15 +45,16 @@ You draw once a day. You can write a reflection. At the end of the year, you hav
 ## running locally
 
 ```bash
-git clone https://github.com/icefeline/slow-hour.git
-cd slow-hour
+git clone https://github.com/icefeline/slow-garden.git
+cd slow-garden
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Copy `.env.example` to `.env.local` and fill it in — the app runs without most of the keys, degrading rather than failing.
 
-> The GitHub repo and the vercel.app subdomain are still named `slow-hour`; the app was renamed in August 2026 and those two names have not caught up yet.
+> The vercel.app subdomain is still named `slow-hour`; the app and the repo were
+> renamed in August 2026 and that one name has not caught up yet.
 
 ### scripts
 
@@ -139,7 +140,7 @@ Readings, reflections and birth details stay in `localStorage`. What does leave 
 
 ## contributing
 
-Work is tracked in [issues](https://github.com/icefeline/slow-hour/issues) and lands through pull requests — see [CONTRIBUTING.md](CONTRIBUTING.md). Released changes are in [CHANGELOG.md](CHANGELOG.md).
+Work is tracked in [issues](https://github.com/icefeline/slow-garden/issues) and lands through pull requests — see [CONTRIBUTING.md](CONTRIBUTING.md). Released changes are in [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
