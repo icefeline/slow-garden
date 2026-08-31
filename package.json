@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "mint": "node --experimental-strip-types scripts/mint-unlock.mts"
+    "mint": "node --experimental-strip-types scripts/mint-unlock.mts",
+    "wiki": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/build-card-wiki.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

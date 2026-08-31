@@ -1,4 +1,4 @@
-import { TarotCard } from '../types/tarot';
+import type { TarotCard } from '../types/tarot';
 
 export const tarotDeck: TarotCard[] = [
   // Major Arcana
