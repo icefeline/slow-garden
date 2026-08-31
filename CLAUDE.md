@@ -20,10 +20,11 @@ slow garden is a meditative daily tarot app for self-reflection. not prediction,
 
 ## tech stack
 
-- **Next.js 15** (App Router, Turbopack in dev)
-- **React 19**
+- **Next.js 16** (App Router, Turbopack in dev)
+- **React 18**
 - **TypeScript**
-- **Tailwind CSS v4**
+- **Tailwind CSS v3**
+- **@sentry/nextjs** — error tracking, EU region, PII stripped in `lib/utils/sentry-scrub.ts`
 - **@anthropic-ai/sdk** — insight generation via `claude-haiku-4-5-20251001`
 - **astronomy-engine** — natal chart + transit calculations (Vedic sidereal, Lahiri ayanamsa)
 - **@upstash/redis + @upstash/ratelimit** — per-IP abuse guards, set far above human
@@ -198,9 +199,14 @@ these apply to AI prompts, UI copy, and any new card meanings:
 npm run dev       # dev server on :3000 (Turbopack)
 npm run build     # production build
 npm run lint      # ESLint
-npm test          # Jest
+npm run mint      # mint a supporter unlock code by hand
+npm run wiki      # regenerate the private card wiki into the Obsidian vault
+npm test          # BROKEN — jest is scripted but not installed (issue #8)
 npm run test:watch
 ```
+
+work is tracked in GitHub issues and lands through pull requests — see
+`CONTRIBUTING.md`. released changes go in `CHANGELOG.md`.
 
 ---
 
@@ -233,12 +239,14 @@ npx @elevenlabs/mcp
 ```
 requires `ELEVENLABS_API_KEY`.
 
-### GitHub MCP
-for managing issues, PRs, and releases without leaving Claude.
+### GitHub — the `gh` CLI, not an MCP
+issues, PRs and releases are managed with `gh`, which is already installed and
+authed on this machine and works from Claude's sandboxed shell.
 ```
-npx @modelcontextprotocol/server-github
+brew install gh && gh auth login   # if setting up elsewhere
 ```
-requires a GitHub personal access token with repo scope.
+note `git push` does *not* work from Claude's shell — it cannot reach the macOS
+keychain. Claude commits, you push. never paste a token to work around it.
 
 ### Vercel MCP
 for deployment previews, build logs, and env var management.
