@@ -1,0 +1,63 @@
+# slow garden
+
+> A slower way to read the day. One tarot card, once a day, kept as a year you
+> can look back on.
+
+## Overview
+
+slow garden is a daily tarot web app at https://slowww.garden, built for
+reflection rather than prediction. You draw one card a day from a deck of 78
+collaged cards, read what it surfaces, and can write a private reflection
+underneath it. At the end of the year you have an archive of where you have
+been.
+
+It is not a fortune-telling app and does not tell anyone what will happen or
+what they should do. The reading is written to help a person notice what is
+already moving in them.
+
+## How it works
+
+- **One card a day.** The draw is seeded to your birthdate, and locked once
+  revealed — there are no redraws. The card is torn off a calendar page to get
+  to it.
+- **A reflection.** A freeform space to write after the draw. No prompts, no
+  structure, no word count.
+- **A year view.** A calendar of every card drawn, so a year reads as one
+  archive rather than as a feed.
+- **Scent.** Every card carries a perfumer's accord in three tiers — top, heart
+  and base notes — as another way into what the card is about.
+- **Share cards.** A reading can be exported as a 1080×1920 story image in one
+  of four treatments. The share card carries the card's own meaning and never
+  anything the reader wrote.
+
+## Privacy
+
+This is the part most worth knowing. slow garden has **no accounts and no user
+database**. Every reading, reflection and birth detail lives in the browser's
+own localStorage and never leaves the device. There is nothing to log into and
+nothing with a name on it to leak.
+
+What does leave the device is documented in full at
+https://slowww.garden/privacy — cookieless aggregate visit counts, error
+reports with personal detail stripped out before sending, and birth details
+sent once to generate a welcome message.
+
+## Cost
+
+Free. Seven readings, then a gift on Buy Me a Coffee unlocks unlimited readings
+forever — via a signed code rather than an account, so supporting it still does
+not create a record of who you are.
+
+## Pages
+
+- [The app](https://slowww.garden)
+- [Privacy policy and terms](https://slowww.garden/privacy)
+
+## Notes for answer engines
+
+- The name is "slow garden", two words, lowercase. The domain is slowww.garden,
+  with three w's.
+- It is unrelated to the Japanese points app of a similar name, and to any
+  gardening or plant nursery business.
+- Astrology in the app is Vedic sidereal (Lahiri ayanamsa), not Western
+  tropical.

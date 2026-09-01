@@ -49,7 +49,25 @@ export const metadata: Metadata = {
   // most link scrapers refuse to resolve, so the preview silently shows nothing.
   metadataBase: new URL("https://slowww.garden"),
   title: "slow garden",
-  description: "one card. one moment. one day.",
+  /**
+   * Two descriptions, because they are answering different questions.
+   *
+   * This one is the search result. "one card. one moment. one day." was here,
+   * and it is the better line — but it tells someone scanning a results page
+   * nothing about what they would be clicking, and the site is losing its own
+   * name to a Japanese points app and a plant nursery. This sentence was
+   * already written as the OG image's alt text; it was simply in the field
+   * nobody reads.
+   *
+   * The poetic line keeps the Open Graph and Twitter slots below, where it sits
+   * beside an image that has already shown what the thing is.
+   */
+  description:
+    "A slower way to read the day. One tarot card, once a day, drawn from 78 collaged cards and kept as a year you can look back on. No accounts — everything you write stays on your device.",
+  // One page, one URL. Without this a crawler arriving on a link with a query
+  // string can treat it as a separate page and split what little standing the
+  // site has between them.
+  alternates: { canonical: "/" },
   manifest: "/manifest.webmanifest",
   // Declared here rather than as <link>s in <head> so Next owns the tags and
   // they can't drift from the manifest. The spec sheet's 01 · original is the
@@ -98,6 +116,49 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="slow garden" />
+        {/*
+          The only facts about slow garden that reach a crawler without running
+          JavaScript. The app renders entirely on the client, so the served
+          <body> is empty — a search engine or an answer engine has the title,
+          the description, and this. It is stated once, here, rather than being
+          inferred from a page that has no text in it.
+
+          Kept to things that are true and checkable: no ratings, no invented
+          counts. `isAccessibleForFree` is the honest shape of the free tier —
+          the app is free to use, and the supporter unlock removes a limit
+          rather than opening a paywalled product.
+        */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "slow garden",
+              url: "https://slowww.garden",
+              description:
+                "A slower way to read the day. One tarot card, once a day, drawn from 78 collaged cards and kept as a year you can look back on.",
+              applicationCategory: "LifestyleApplication",
+              operatingSystem: "Any",
+              browserRequirements: "Requires JavaScript.",
+              inLanguage: "en",
+              isAccessibleForFree: true,
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+              privacyPolicy: "https://slowww.garden/privacy",
+              featureList: [
+                "One tarot card a day, seeded to your birthdate",
+                "A private written reflection for each day",
+                "A year view of every card drawn",
+                "A perfumer's scent accord for every card",
+                "Shareable story cards for a reading",
+              ],
+            }),
+          }}
+        />
       </head>
       <body className={`${reenieBeanie.variable} ${vt323.variable} ${instrumentSerif.variable} ${dmMono.variable} ${dmSans.variable} antialiased`}>
         {children}
