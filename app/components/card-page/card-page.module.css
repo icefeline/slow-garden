@@ -457,18 +457,32 @@
 .unlockNote { font-family: var(--f-term); font-size: 15px; color: var(--lime-ink-soft); margin-top: 8px; }
 
 /* --- share -------------------------------------------------------- */
-/* Set as a prompt line, not a button: it sits under the reflection box in a
-   column of terminal voice, and a filled control there would be the loudest
-   thing on a page whose whole argument is quiet. */
+/* A selected row on a VCR menu, which is the language of the sheet it opens.
+   It was a dotted prompt line before, on the argument that a filled control
+   would be the loudest thing on a quiet page — but it was quiet enough to be
+   missed, and the highlight is the same set-up-screen idiom the share sheet is
+   already drawn in, so the control and the thing it opens now speak once.
+
+   Cobalt is the brand blue at full strength. It can be used as a ground here,
+   where it holds one short line, in a way it could not behind the share cards
+   themselves — there it competes with the artwork it is meant to be holding,
+   which is why that sheet uses a deep navy instead.
+
+   Lime on the cobalt, which is the app's own pairing and the only one here
+   that carries: 6.31:1, clear of AA for body text let alone type this size.
+   The moss it used to be measured 2.71:1 on this ground — under even the 3:1
+   large text is meant to clear, and visibly faint for the one control on the
+   page a reader is being invited to press. */
 .share {
   align-self: flex-start;
   margin-top: 18px;
   font-family: var(--f-term);
-  font-size: 19px;
-  color: var(--ink-soft, #8b9a7a);
-  background: none;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--lime);
+  background: #2B35D6;
   border: 0;
-  border-bottom: 1px dotted currentColor;
-  padding: 0 0 3px;
+  padding: 6px 14px 8px;
   cursor: pointer;
 }
