@@ -11,6 +11,7 @@ import { skyFor } from '@/lib/utils/sky';
 import { zoneForCoordinates } from '@/lib/utils/birth-instant';
 
 
+import { humaniseFields } from '@/lib/utils/humanise';
 const HOUSE_THEMES: Record<number, string> = {
   1: 'identity and how you show up',
   2: 'self-worth and resources',
@@ -148,6 +149,19 @@ Voice (these matter):
 - Do not explain the transit in general terms — tell them what THIS transit means in THEIR life right now
 - Do not name any zodiac sign
 
+Do not write like a language model. These are the tells:
+- No "it's not X, it's Y", "not just X but Y", or any sentence built on a correction
+- No groups of three. Two things, or four, or one. A triad is the shape a machine reaches for when it has nothing to add
+- No "at its core", "the real question is", "what really matters", "fundamentally", "the truth is". They announce depth instead of having it
+- No sayings of the form "X is the Y of Z" — "grief is the language of love" and anything like it
+- No "stands as", "serves as", "represents", "marks", "is a testament to". Use is, has, does
+- No trailing -ing clauses that comment on the sentence they hang off: "revealing...", "reflecting...", "speaking to...", "highlighting...", "a reminder that..."
+- Never these words: profound, vibrant, rich, crucial, key, landscape, tapestry, interplay, intricate, testament, deeply, truly, simply, powerful
+- Do not end on reassurance or a lift. Stop on the last real observation, even if it sits badly. The discomfort is the point
+- Vary the sentence lengths. Do not write three medium sentences in a row
+- No one-word or fragment sentences for drama
+- The phrases you are given as source material use em dashes. That is the author's punctuation, not yours. Do not copy it
+
 ${dataNote ? `Data note: ${dataNote}` : ''}
 
 About this person:
@@ -215,7 +229,9 @@ Return only valid JSON, no markdown, no extra text.`;
     // Basic validation
     if (!parsed.keyPhrase || !parsed.insight || !parsed.action) return null;
 
-    return parsed;
+    // The prompt asks for no em dashes and mostly gets its way. This is the
+    // part that does not depend on being obeyed — see lib/utils/humanise.ts.
+    return humaniseFields(parsed);
   } catch (error) {
     console.error('Claude insight generation failed:', error);
     return null;

@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { sanitizeText, isValidDate } from '@/lib/utils/validate';
 import { calculateNatalChart } from '@/lib/utils/astrology-calculator';
 
+import { humanise } from '@/lib/utils/humanise';
 // ── 27 Nakshatras ─────────────────────────────────────────────────────────────
 // In Vedic astrology the janma nakshatra (birth lunar mansion) is the most
 // personal marker — more specific than rashi, unique to a ~1 day window.
@@ -189,6 +190,18 @@ Voice (non-negotiable):
 - No: "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour", "karma", "dharma", "resonate"
 - No questions
 
+Do not write like a language model. These are the tells:
+- No "it's not X, it's Y" or "not just X but Y"
+- No groups of three. With only three sentences to work with, a triad inside one of them makes the whole message a list
+- No "at its core", "the real question is", "what really matters", "fundamentally", "the truth is"
+- No sayings of the form "X is the Y of Z"
+- No "stands as", "serves as", "represents", "is a testament to". Use is, has, does
+- No trailing -ing clauses commenting on the sentence they hang off: "revealing...", "reflecting...", "speaking to..."
+- Never these words: profound, vibrant, rich, crucial, key, landscape, tapestry, interplay, intricate, testament, deeply, truly, simply, powerful
+- Do not flatter them. This is a description, not a compliment, and a stranger telling someone they are special reads as a horoscope in a newspaper
+- Vary the sentence lengths. Three sentences of the same length is the giveaway
+- The qualities you are given as source material use em dashes. That is the author's punctuation, not yours. Do not copy it
+
 About this person:
 Name: ${sanitizedName}
 Janma nakshatra quality: ${nakshatra.quality}
@@ -210,7 +223,9 @@ Write: greeting line + exactly 3 sentences. Total ~65-80 words. Nothing else.`;
       return NextResponse.json({ error: 'Unexpected response type' }, { status: 500 });
     }
 
-    return NextResponse.json({ message: content.text.trim() });
+    // See lib/utils/humanise.ts: the prompt asks for no em dashes, and this is
+    // the part that does not depend on being obeyed.
+    return NextResponse.json({ message: humanise(content.text) });
   } catch (error) {
     console.error('Welcome insight error:', error);
     return NextResponse.json({ error: 'Failed to generate welcome message' }, { status: 500 });
