@@ -168,6 +168,17 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   const lastY = useRef(0);
   const lastMoveAt = useRef(0);
   const velocity = useRef(0);
+  /**
+   * Whether the sheet is on its way out.
+   *
+   * Dismissal used to unmount the drawer the instant the threshold was crossed,
+   * so the sheet vanished from wherever the thumb left it and the year view was
+   * simply there. This carries it the rest of the way down first: the drag ends
+   * where the animation begins, and the reader watches the thing they were
+   * holding leave rather than blink out of existence.
+   */
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<number | null>(null);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -280,6 +291,37 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
   const closeDrawer = () => setDrawerOpen(false);
 
+  /** How long the sheet takes to leave, and the easing it leaves on. */
+  const EXIT_MS = 260;
+  const EXIT_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+  /**
+   * Sends the sheet the rest of the way down, then unmounts it.
+   *
+   * Continues from wherever the drag ended rather than restarting, so a sheet
+   * already 200px down travels the remaining distance instead of jumping back
+   * and replaying. The timer is the completion signal rather than transitionend:
+   * a transition that never starts, because the sheet is already at the target,
+   * fires no event, and the drawer would stay open forever.
+   */
+  const dismissDrawer = () => {
+    const height = sheetEl?.getBoundingClientRect().height ?? window.innerHeight;
+    setClosing(true);
+    setDrawerTranslateY(height);
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => {
+      closeDrawer();
+      setClosing(false);
+      closeTimer.current = null;
+    }, EXIT_MS);
+  };
+
+  // A drawer unmounted mid-exit, by a route change or a re-render, must not
+  // leave its timer to fire into nothing.
+  useEffect(() => () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+  }, []);
+
   /**
    * Pull-to-close, listening on the whole sheet rather than on the handle alone.
    *
@@ -384,7 +426,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       // as a dismissal, and that felt ignored here because only distance
       // counted. 0.5px/ms is about 500px a second, well above a drag that
       // happens to end while still moving.
-      if (dy > 80 || (dy > 24 && speed > 0.5)) closeDrawer();
+      if (dy > 80 || (dy > 24 && speed > 0.5)) dismissDrawer();
       else setDrawerTranslateY(0);
     };
 
@@ -606,10 +648,21 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       {drawerOpen && selectedDate && selectedCard && selectedEntry && (
         <>
           {/* Backdrop */}
+          {/* The scrim thins as the sheet is pulled down, so the gesture reads
+              as one movement rather than a panel sliding over a static wall.
+              Tied to the drag rather than to a class so it tracks the thumb. */}
           <div
             className="md:hidden fixed inset-0 bg-[#172211]/60 backdrop-blur-sm z-40"
-            onClick={closeDrawer}
+            onClick={dismissDrawer}
             aria-hidden="true"
+            style={{
+              opacity: closing ? 0 : Math.max(0, 1 - drawerTranslateY / 320),
+              transition: closing
+                ? `opacity ${EXIT_MS}ms ${EXIT_EASE}`
+                : drawerTranslateY === 0
+                ? 'opacity 0.3s ease'
+                : 'none',
+            }}
           />
           {/* Drawer panel */}
           <div
@@ -632,7 +685,14 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
             style={{
               transform: `translateY(${drawerTranslateY}px)`,
-              transition: drawerTranslateY === 0 ? 'transform 0.3s ease' : 'none',
+              /* No transition while a thumb is on it — the sheet must sit exactly
+                 where the finger is. The settle back to rest and the exit both
+                 animate; the exit is the same curve iOS uses for sheets. */
+              transition: closing
+                ? `transform ${EXIT_MS}ms ${EXIT_EASE}`
+                : drawerTranslateY === 0
+                ? 'transform 0.3s ease'
+                : 'none',
             }}
           >
             {/* Drag handle — touch target for swipe-to-close */}
