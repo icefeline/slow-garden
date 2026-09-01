@@ -36,7 +36,7 @@ export const natalPlanetMeanings: Record<string, string[]> = {
 export const transitingPlanetActions: Record<string, string[]> = {
   saturn: ['bringing structure and testing what\'s real', 'asking you to build something that lasts', 'showing you where the foundation needs work', 'demanding maturity'],
   jupiter: ['opening doors', 'asking you to grow beyond your current limits', 'bringing opportunity', 'showing you what\'s possible'],
-  uranus: ['breaking patterns', 'bringing sudden insight', 'disrupting what felt stable', 'pushing you toward authenticity'],
+  uranus: ['breaking patterns', 'bringing sudden insight', 'disrupting what felt stable', 'pushing you towards authenticity'],
   neptune: ['dissolving boundaries and illusions', 'asking what\'s real beyond the story', 'bringing spiritual sensitivity', 'blurring what felt certain'],
   pluto: ['transforming at the root', 'bringing what\'s hidden to the surface', 'demanding you face what\'s been avoided', 'breaking down to rebuild'],
   mars: ['activating your will', 'bringing energy and urgency', 'pushing you to act', 'stirring up conflict or courage']
@@ -260,7 +260,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'A fresh emotional current in {house_theme}. {transiting_planet} meeting your {natal_planet} - Ace of Cups doesn\'t repeat what came before. This is actually new',
       'The overflowing cup in {house_theme} while {transiting_planet} hits your {natal_planet} - don\'t talk yourself out of this feeling before you\'ve fully felt it'
     ],
-    action: 'let yourself feel the new thing without immediately analyzing it'
+    action: 'let yourself feel the new thing without immediately analysing it'
   },
 
   'cups-2': {
@@ -388,7 +388,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'New mental clarity in {house_theme}. {transiting_planet} hitting your {natal_planet} - the breakthrough thought, the thing that suddenly makes everything make sense',
       'The truth in {house_theme} cuts clean. {transiting_planet} meeting your {natal_planet} - sharp, not cruel. Use it'
     ],
-    action: 'write down the truth you just realized. clearly. in one sentence'
+    action: 'write down the truth you just realised. clearly. in one sentence'
   },
 
   'swords-2': {
@@ -561,7 +561,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Let yourself receive it. {transiting_planet} activating your {natal_planet} in {house_theme} - shrinking it doesn\'t make you humble, it makes you dishonest',
       'You won in {house_theme}. {transiting_planet} meeting your {natal_planet} - the crowd is watching. Lead'
     ],
-    action: 'accept the acknowledgment without deflecting it. you earned it'
+    action: 'accept the acknowledgement without deflecting it. you earned it'
   },
 
   'wands-7': {

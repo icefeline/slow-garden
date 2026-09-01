@@ -213,7 +213,7 @@ export const houseContexts: Record<number, HouseContext> = {
       'friends, groups, your people',
       'hopes for the future',
       'where you belong',
-      'the life you\'re building toward'
+      'the life you\'re building towards'
     ],
     questionPrompts: [
       'who are your people?',

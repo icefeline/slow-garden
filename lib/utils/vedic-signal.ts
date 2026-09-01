@@ -79,7 +79,7 @@ const HOUSE_FROM_MOON_THEME: Record<number, string> = {
   8: 'what is being turned over underneath, out of sight',
   9: 'what they believe and how far they can see',
   10: 'the work, and being watched while doing it',
-  11: 'the wider circle and what they are moving toward',
+  11: 'the wider circle and what they are moving towards',
   12: 'the inner room, solitude, and what is being released',
 };
 
