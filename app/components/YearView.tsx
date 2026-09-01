@@ -141,6 +141,9 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   const touchStartY = useRef<number>(0);
   const [drawerTranslateY, setDrawerTranslateY] = useState(0);
   const savedScrollY = useRef(0);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  /** Whether the current touch is dragging the sheet rather than scrolling it. */
+  const draggingSheet = useRef(false);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -253,22 +256,67 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
   const closeDrawer = () => setDrawerOpen(false);
 
-  const handleDrawerTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
+  /**
+   * Pull-to-close, listening on the whole sheet rather than on the handle alone.
+   *
+   * The handle was a 44px target on a sheet that covers the screen, and the only
+   * other way out was a backdrop sliver a few points tall. Miss both and the
+   * drawer could not be dismissed at all — on a home-screen install, where there
+   * is no browser chrome to fall back to, that meant force-quitting the app.
+   *
+   * The sheet is also its own scroller, so a downward drag is ambiguous: it
+   * means "scroll up through the reading" until the content is at the top, and
+   * only then "put the sheet away". That is the check below, taken once at
+   * touchstart — deciding per-frame would let a fast flick change its mind
+   * halfway through and jump the sheet.
+   *
+   * The listener is registered natively so it can be non-passive. Without
+   * preventDefault iOS runs its own rubber-band underneath the drag, which is
+   * the "it just pulls the whole screen down" in the report.
+   */
+  useEffect(() => {
+    const sheet = drawerRef.current;
+    if (!sheet) return;
 
-  const handleDrawerTouchMove = (e: React.TouchEvent) => {
-    const dy = e.touches[0].clientY - touchStartY.current;
-    if (dy > 0) setDrawerTranslateY(dy); // only allow downward drag
-  };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+      draggingSheet.current = sheet.scrollTop <= 0;
+    };
 
-  const handleDrawerTouchEnd = () => {
-    if (drawerTranslateY > 80) {
-      closeDrawer();
-    } else {
-      setDrawerTranslateY(0);
-    }
-  };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!draggingSheet.current) return;
+      const dy = e.touches[0].clientY - touchStartY.current;
+      if (dy <= 0) {
+        // Dragged back up past where it started — hand the gesture back to the
+        // scroller rather than pinning the sheet at zero for the rest of it.
+        draggingSheet.current = false;
+        setDrawerTranslateY(0);
+        return;
+      }
+      e.preventDefault();
+      setDrawerTranslateY(dy);
+    };
+
+    const onTouchEnd = () => {
+      if (!draggingSheet.current) return;
+      draggingSheet.current = false;
+      setDrawerTranslateY((dy) => {
+        if (dy > 80) closeDrawer();
+        return 0;
+      });
+    };
+
+    sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+    sheet.addEventListener('touchmove', onTouchMove, { passive: false });
+    sheet.addEventListener('touchend', onTouchEnd);
+    sheet.addEventListener('touchcancel', onTouchEnd);
+    return () => {
+      sheet.removeEventListener('touchstart', onTouchStart);
+      sheet.removeEventListener('touchmove', onTouchMove);
+      sheet.removeEventListener('touchend', onTouchEnd);
+      sheet.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [drawerOpen]);
 
   const handleDayClick = (date: string, hasCard: boolean, isToday: boolean) => {
     if (!hasCard) return;
@@ -483,7 +531,14 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
           />
           {/* Drawer panel */}
           <div
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[94vh] overflow-y-auto animate-slide-up border-t-2 border-[#C9F24E]/30"
+            ref={drawerRef}
+            /* 86dvh, not 94vh — the sheet stops short of the top instead of
+               running under the status bar, so the grab handle sits somewhere
+               a thumb expects to find it and the backdrop above stays wide
+               enough to tap. vh was the wrong unit besides: it ignores the
+               home indicator, which is exactly the space a home-screen
+               install has and a browser tab does not. */
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[86dvh] overflow-y-auto animate-slide-up border-t-2 border-[#C9F24E]/30"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
@@ -503,9 +558,6 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                 background:
                   'linear-gradient(to bottom, #172211 0%, #172211 46%, rgba(23,34,17,0.85) 68%, rgba(23,34,17,0) 100%)',
               }}
-              onTouchStart={handleDrawerTouchStart}
-              onTouchMove={handleDrawerTouchMove}
-              onTouchEnd={handleDrawerTouchEnd}
             >
               <div className="w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
             </div>
