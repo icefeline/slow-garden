@@ -822,7 +822,18 @@ export default function Home() {
       {/* Content */}
       <div className="pt-safe-nav flex-1">
         {currentView === 'card' && card && (
-          <div className={isRevealed ? 'py-6 md:py-10' : 'max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-10'}>
+          /* Less room above than below, and the same in both states.
+             The reading opened a long way under the nav, with a band of empty
+             ground that read as a gap rather than as margin. The top is now
+             half what it was; the bottom keeps its depth so the page still
+             ends on air rather than on an edge.
+
+             Both states carry identical vertical padding on purpose. The
+             sealed page holds the revealed page's exact layout open behind the
+             tear-off — see the invisible CardName below — so a difference here
+             would move the card at the moment of opening, which is the one
+             moment it has to be still. */
+          <div className={isRevealed ? 'pt-3 pb-6 md:pt-5 md:pb-10' : 'max-w-4xl mx-auto px-4 md:px-8 pt-3 pb-6 md:pt-5 md:pb-10'}>
             {/* Once revealed, the reading page governs its own measure
                 (1080px), so the wrapper steps out of the way. Sealed, the
                 tear-off still wants the narrow column. */}
@@ -830,16 +841,25 @@ export default function Home() {
                 rest of the page, and its space is already held so the card
                 below it does not move when it appears. */}
             <div
-              /* Sits as close to the name as the name sits to the card. The
-                 page's own 8px top padding and the name's 4px margin are part
-                 of that gap, so this carries the remainder: 6 + 12 = 18 on a
-                 phone, 14 + 12 = 26 on a desktop, matching .plate's margin. */
-              className="text-center mb-1.5 md:mb-3"
+              /* The page's own 8px top padding and the name's 4px margin are
+                 already 12px of this gap, so this only carries the remainder:
+                 12 on a phone, 20 on a desktop.
+
+                 Nothing on a phone — the date belongs to the name under it, and
+                 at the size the name takes there, 18px read as two separate
+                 lines rather than a heading with its date. The desktop keeps
+                 8px, where the name is large enough to want the air. */
+              className="text-center md:mb-2"
               style={{ visibility: isRevealed ? 'visible' : 'hidden' }}
             >
               <p
                 className="text-[#C9F24E]"
-                style={{ fontSize: 'clamp(12px, 2.6vw, 15px)', letterSpacing: '0.18em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+                /* The nav's own size, clamp(9px, 2.2vw, 11px) — the date and the
+                   today/year buttons are both machine voice labelling the same
+                   view, and the date being the larger of the two made it look
+                   like a heading competing with the card's name. Its wider
+                   tracking stays: it is a line of its own, not a pill. */
+                style={{ fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.18em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
               >
                 {new Date(dateString + 'T00:00:00').toLocaleDateString('en-GB', {
                   weekday: 'long',
