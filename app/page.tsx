@@ -525,6 +525,16 @@ export default function Home() {
         ) : (
           <div className={cardPage.entry}>{reflection}</div>
         )}
+        {/* Directly under the writing it is confirming. Below the share button
+            it read as a receipt for the share rather than for the log, and sat
+            far enough from the textarea to be answering nothing in particular.
+            Only a log that has something in it can confirm itself. */}
+        {(isToday ? savedLength > 0 : reflection.trim().length > 0) && (
+          <div className={cardPage.saved}>
+            &gt; SAVED TO {dateString}.LOG <span className={cardPage.cursor}>_</span>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={() => setShareOpen(true)}
@@ -532,13 +542,6 @@ export default function Home() {
         >
           &gt; SHARE THIS CARD
         </button>
-
-        {/* Only a log that has something in it can confirm itself. */}
-        {(isToday ? savedLength > 0 : reflection.trim().length > 0) && (
-          <div className={cardPage.saved}>
-            &gt; SAVED TO {dateString}.LOG <span className={cardPage.cursor}>_</span>
-          </div>
-        )}
       </section>
     );
   };
