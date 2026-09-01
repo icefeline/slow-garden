@@ -351,20 +351,21 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       }
 
       const dy = y - touchStartY.current;
-      if (dy < 0) {
-        // Dragged back up past where it started — hand the gesture back to the
-        // scroller rather than pinning the sheet at zero for the rest of it.
-        //
-        // Strictly less than zero, not at-or-below. On the frame the sheet
-        // takes over from the scroller the origin is rebased to the thumb, so
-        // dy is exactly 0 there; `<= 0` handed the gesture straight back, and
-        // the next frame took it again, and the sheet never moved at all.
-        draggingSheet.current = false;
-        setY(0);
-        return;
-      }
+
+      // Once the sheet has the gesture it keeps it until the thumb lifts, and
+      // follows in both directions: down away from rest, back up towards it.
+      //
+      // It used to give the gesture back to the scroller the moment dy went
+      // negative, snapping home. A thumb does not travel in one direction — it
+      // wobbles a pixel upward constantly — so a drag would cancel itself
+      // partway and have to be started again. That is the drawer "needing
+      // several drags", and it is what a native sheet never does.
+      //
+      // Clamped at zero so the sheet cannot be pulled above where it rests.
+      // Dragging up past that point simply holds it at rest rather than
+      // handing back mid-gesture; the scroller gets its turn on the next touch.
       e.preventDefault();
-      setY(dy);
+      setY(Math.max(0, dy));
     };
 
     const onTouchEnd = () => {
