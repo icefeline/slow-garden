@@ -326,7 +326,10 @@
 }
 
 .saved {
-  margin-top: 10px;
+  /* Close enough to the box to be its receipt. At 10px it floated between the
+     textarea and the share row and could have belonged to either; the share
+     row carries 18px of its own, so 4px here makes the pairing unambiguous. */
+  margin-top: 4px;
   font-family: var(--f-term);
   font-size: 16px;
   letter-spacing: .04em;
