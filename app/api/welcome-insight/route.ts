@@ -27,7 +27,7 @@ const NAKSHATRAS = [
   { name: 'vishakha',         planet: 'jupiter', quality: 'driven by purpose — once the goal is set, everything else becomes noise; intensity in pursuit, difficulty letting go mid-path' },
   { name: 'anuradha',         planet: 'saturn',  quality: 'devotion and loyalty — goes all the way in, carries the weight of relationships as a form of meaning, slow to leave' },
   { name: 'jyeshtha',         planet: 'mercury', quality: 'protective elder energy — takes charge, holds others up, sometimes at great personal cost and without asking for help' },
-  { name: 'mula',             planet: 'ketu',    quality: 'pulled toward roots and dissolution — not satisfied until reaching the origin of things, unafraid of what others avoid' },
+  { name: 'mula',             planet: 'ketu',    quality: 'pulled towards roots and dissolution — not satisfied until reaching the origin of things, unafraid of what others avoid' },
   { name: 'purva ashadha',    planet: 'venus',   quality: 'fierce and undefeated — internal strength that does not advertise itself, moves with quiet conviction' },
   { name: 'uttara ashadha',   planet: 'sun',     quality: 'quiet permanence — builds slowly and lasts long, values what endures over what impresses, principled to a fault' },
   { name: 'shravana',         planet: 'moon',    quality: 'listens before it speaks — processes the world by receiving it, hears what others miss, needs to digest before responding' },
@@ -41,10 +41,10 @@ const NAKSHATRAS = [
 // What the ruling planet's dasha period tends to call forward
 const DASHA_THEMES: Record<string, string> = {
   ketu:    'a calling to release attachment and look inward — not what to gain but what to let go',
-  venus:   'a pull toward beauty, connection, and the pleasure of being alive — and what that costs',
+  venus:   'a pull towards beauty, connection, and the pleasure of being alive — and what that costs',
   sun:     'a push to stand in one\'s own authority — not borrowed, not performed',
   moon:    'a period of emotional learning — what the feelings are actually pointing to',
-  mars:    'a drive toward action and will — what is worth fighting for, what isn\'t',
+  mars:    'a drive towards action and will — what is worth fighting for, what isn\'t',
   rahu:    'an expansion into unfamiliar territory — desire as a teacher, restlessness as a signal',
   jupiter: 'a broadening of meaning and worldview — what is believed and why',
   saturn:  'a long slow building — patience and discipline over quick results',
@@ -178,12 +178,13 @@ This app uses Jyotish, not Western astrology. That means:
 
 Voice (non-negotiable):
 - Entirely lowercase, no em dashes, no exclamation marks
+- British English spelling throughout: realise, recognise, colour, honour, favour, centre, behaviour, practise (verb), towards, grey, judgement. Never the American forms
 - Perceptive friend who just looked at the chart — warm and specific, not practitioner-speak
 - Begin with this greeting (choose the one that best fits the nakshatra energy): ${greetingHint}
 - After the greeting: 3 sentences only. Each must open with a different word. No sentence after the greeting may start with "you"
 - Use varied openers: "there's", "something in", "a lot of what", "for someone", "in people with", "what shows up", "the pattern", "most of what", "some of", "this kind of"
 - Be specific to the actual placements — not generic. The nakshatra quality is the anchor
-- Final sentence: 5-8 words, quietly gestures toward the card draw
+- Final sentence: 5-8 words, quietly gestures towards the card draw
 - No nakshatra name, no rashi name, no planet name — describe the quality, embody the concept
 - No: "journey", "navigate", "embrace", "explore", "tap into", "delve", "unpack", "honour", "karma", "dharma", "resonate"
 - No questions

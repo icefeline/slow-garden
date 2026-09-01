@@ -92,12 +92,12 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['sudden change', 'breakdown', 'truth revealed', 'false structures falling'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['facing uncomfortable truth', 'releasing control', 'what can\'t be held together anymore'],
+      psychologicalFocus: ['facing uncomfortable truth', 'releasing control', 'what can\'t be held together any more'],
       actionQualities: ['letting it fall', 'naming what\'s crumbling', 'clearing space'],
       naturalPhrases: [
         'what\'s falling apart',
         'the breakdown',
-        'what can\'t hold anymore',
+        'what can\'t hold any more',
         'the truth getting loud',
         'the structure collapsing'
       ]
@@ -213,7 +213,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       coreThemes: ['intuition', 'mystery', 'inner knowing', 'the unconscious', 'hidden knowledge'],
       emotionalTone: 'neutral',
       psychologicalFocus: ['trusting what you sense', 'accessing deeper knowing', 'honoring mystery'],
-      actionQualities: ['listening within', 'trusting intuition', 'waiting for clarity', 'honoring the unknown'],
+      actionQualities: ['listening within', 'trusting intuition', 'waiting for clarity', 'honouring the unknown'],
       naturalPhrases: [
         'what you already know',
         'the intuition speaking',
@@ -332,7 +332,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['choice', 'union', 'alignment', 'values', 'relationships'],
       emotionalTone: 'expansive',
-      psychologicalFocus: ['choosing what aligns', 'honoring relationships', 'values-based decisions'],
+      psychologicalFocus: ['choosing what aligns', 'honouring relationships', 'values-based decisions'],
       actionQualities: ['choosing', 'committing', 'aligning', 'uniting', 'honoring connection'],
       naturalPhrases: [
         'the choice before you',
@@ -422,8 +422,8 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['cycles', 'fate', 'turning point', 'change', 'destiny'],
       emotionalTone: 'neutral',
-      psychologicalFocus: ['accepting life\'s cycles', 'recognizing turning points', 'surrendering to change'],
-      actionQualities: ['accepting change', 'moving with cycles', 'recognizing patterns', 'letting life turn'],
+      psychologicalFocus: ['accepting life\'s cycles', 'recognising turning points', 'surrendering to change'],
+      actionQualities: ['accepting change', 'moving with cycles', 'recognising patterns', 'letting life turn'],
       naturalPhrases: [
         'the cycle turning',
         'change arriving',
@@ -649,7 +649,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       actionQualities: ['ignoring the call', 'staying down', 'being harsh with yourself', 'refusing awakening'],
       naturalPhrases: [
         'the call you\'re ignoring',
-        'harsh judgment of self',
+        'harsh judgement of self',
         'refusing to rise',
         'the awakening you resist'
       ]
@@ -668,7 +668,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'the completion',
         'feeling whole',
         'the cycle fulfilled',
-        'achievement realized',
+        'achievement realised',
         'integration happening'
       ]
     },
@@ -736,7 +736,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['fear of unknown', 'lack of planning', 'playing small', 'avoiding decision'],
       emotionalTone: 'challenging',
-      psychologicalFocus: ['too scared to choose', 'staying in comfort zone', 'paralyzed by options'],
+      psychologicalFocus: ['too scared to choose', 'staying in comfort zone', 'paralysed by options'],
       actionQualities: ['avoiding decision', 'staying safe', 'refusing to plan', 'shrinking from possibility'],
       naturalPhrases: [
         'the decision you\'re avoiding',
@@ -772,7 +772,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'when the fight feels too much',
         'letting the position go',
         'exhaustion winning',
-        'the defense you can\'t sustain'
+        'the defence you can\'t sustain'
       ]
     }
   },
@@ -871,10 +871,10 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     id: 'wands-6',
     name: 'Six of Wands',
     upright: {
-      coreThemes: ['victory', 'recognition', 'success', 'public acknowledgment', 'confidence'],
+      coreThemes: ['victory', 'recognition', 'success', 'public acknowledgement', 'confidence'],
       emotionalTone: 'expansive',
       psychologicalFocus: ['being seen for achievement', 'deserved recognition', 'success earned'],
-      actionQualities: ['succeeding', 'being recognized', 'leading', 'receiving acknowledgment', 'claiming victory'],
+      actionQualities: ['succeeding', 'being recognized', 'leading', 'receiving acknowledgement', 'claiming victory'],
       naturalPhrases: [
         'the recognition arriving',
         'victory earned',
@@ -952,7 +952,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'the exhaustion winning',
         'defenses too high',
         'ready to give up',
-        'when you can\'t fight anymore'
+        'when you can\'t fight any more'
       ]
     }
   },
@@ -1449,7 +1449,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
       actionQualities: ['transitioning', 'moving forward', 'traveling', 'leaving behind', 'recovering'],
       naturalPhrases: [
         'the transition happening',
-        'moving toward calmer waters',
+        'moving towards calmer waters',
         'leaving the storm',
         'the journey forward',
         'recovery in motion'
@@ -1524,7 +1524,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
         'the freedom you\'re finding',
         'seeing the way out',
         'the blindfold coming off',
-        'recognizing you were never trapped'
+        'recognising you were never trapped'
       ]
     }
   },
@@ -1578,7 +1578,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     reversed: {
       coreThemes: ['recovery', 'regeneration', 'surviving', 'getting up again', 'worst is over'],
       emotionalTone: 'neutral',
-      psychologicalFocus: ['rising from defeat', 'realizing you survived', 'regeneration beginning'],
+      psychologicalFocus: ['rising from defeat', 'realising you survived', 'regeneration beginning'],
       actionQualities: ['recovering', 'rising', 'healing from trauma', 'getting back up', 'starting over'],
       naturalPhrases: [
         'the worst behind you',
@@ -1626,7 +1626,7 @@ export const cardArchetypes: Record<string, CardArchetype> = {
     upright: {
       coreThemes: ['collaboration', 'teamwork', 'skill', 'learning', 'building together'],
       emotionalTone: 'expansive',
-      psychologicalFocus: ['working well with others', 'skill being recognized', 'learning through doing'],
+      psychologicalFocus: ['working well with others', 'skill being recognised', 'learning through doing'],
       actionQualities: ['collaborating', 'building', 'learning', 'contributing skill', 'working together'],
       naturalPhrases: [
         'the work you\'re building together',
