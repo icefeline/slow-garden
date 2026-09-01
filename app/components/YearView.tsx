@@ -178,7 +178,31 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * holding leave rather than blink out of existence.
    */
   const [closing, setClosing] = useState(false);
+  /**
+   * Whether the sheet has finished arriving.
+   *
+   * The entrance used to be a CSS class, `animate-slide-up`, declared with
+   * `forwards` — and an animation's fill value outranks an inline style. So the
+   * class pinned `transform` to translateY(0) for the whole life of the sheet
+   * and every transform the drag set was silently discarded. The gesture code
+   * was correct and the sheet simply could not move.
+   *
+   * One owner of `transform` now, which is React. The sheet mounts sitting a
+   * full height below its place and is released on the next frame, so the
+   * arrival animates for the same reason the exit does.
+   */
+  const [entered, setEntered] = useState(false);
   const closeTimer = useRef<number | null>(null);
+
+  // Two frames, not one: the first commits the starting transform, the second
+  // changes it. Setting both in the same frame gives the browser one style to
+  // compute and nothing to animate between.
+  useEffect(() => {
+    if (!sheetEl) { setEntered(false); return; }
+    let second = 0;
+    const first = requestAnimationFrame(() => { second = requestAnimationFrame(() => setEntered(true)); });
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(second); };
+  }, [sheetEl]);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -679,19 +703,21 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                No top border. A lime rule across the head of the sheet drew a
                line under nothing — the rounded corners and the ground change
                already say where the sheet starts. */
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto animate-slide-up"
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
             style={{
-              transform: `translateY(${drawerTranslateY}px)`,
+              transform: entered ? `translateY(${drawerTranslateY}px)` : 'translateY(100%)',
               /* No transition while a thumb is on it — the sheet must sit exactly
                  where the finger is. The settle back to rest and the exit both
                  animate; the exit is the same curve iOS uses for sheets. */
-              transition: closing
+              transition: !entered
+                ? 'none'
+                : closing
                 ? `transform ${EXIT_MS}ms ${EXIT_EASE}`
                 : drawerTranslateY === 0
-                ? 'transform 0.3s ease'
+                ? `transform 300ms ${EXIT_EASE}`
                 : 'none',
             }}
           >
