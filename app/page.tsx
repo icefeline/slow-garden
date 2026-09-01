@@ -854,7 +854,12 @@ export default function Home() {
             >
               <p
                 className="text-[#C9F24E]"
-                style={{ fontSize: 'clamp(12px, 2.6vw, 15px)', letterSpacing: '0.18em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+                /* The nav's own size, clamp(9px, 2.2vw, 11px) — the date and the
+                   today/year buttons are both machine voice labelling the same
+                   view, and the date being the larger of the two made it look
+                   like a heading competing with the card's name. Its wider
+                   tracking stays: it is a line of its own, not a pill. */
+                style={{ fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.18em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
               >
                 {new Date(dateString + 'T00:00:00').toLocaleDateString('en-GB', {
                   weekday: 'long',
