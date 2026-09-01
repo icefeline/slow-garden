@@ -554,18 +554,34 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             }}
           >
             {/* Drag handle — touch target for swipe-to-close */}
-            <div
-              className="sticky top-0 pt-3 pb-6 -mb-4 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing"
-              /* Solid behind the handle, then fading out beneath it. The bar
-                 used to be a flat fill, so content scrolling under it was cut
-                 off along a hard horizontal line. The negative margin lets the
-                 fade overlap the content rather than reserving space for it. */
-              style={{
-                background:
-                  'linear-gradient(to bottom, #172211 0%, #172211 46%, rgba(23,34,17,0.85) 68%, rgba(23,34,17,0) 100%)',
-              }}
-            >
-              <div className="w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
+            <div className="sticky top-0 pt-3 pb-6 -mb-4 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing">
+              {/* Solid behind the handle, then fading out beneath it, so content
+                  scrolling under is fed out rather than cut along a hard line.
+                  That fade is the intent and stays.
+
+                  It starts 2px above the sheet's own top edge, which is the
+                  only part that is a fix. The sheet carries both a radius and a
+                  transform, so its clipped content rasterises on a different
+                  pixel grid from this scrim; at a fractional offset — the sheet
+                  sits at x.96 on a 2x screen — the two disagreed by a hairline
+                  and a sliver of moving content showed along the join. Starting
+                  above the edge means there is no shared boundary to disagree
+                  about. The overhang is clipped by the sheet's own overflow.
+
+                  It has to be transparent again by 42px, where the date sits:
+                  covering the seam is not worth hiding the day. The bar is
+                  relative so it paints above the scrim. */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 rounded-t-3xl"
+                style={{
+                  top: '-2px',
+                  height: '44px',
+                  background:
+                    'linear-gradient(to bottom, #172211 0%, #172211 50%, rgba(23,34,17,0.85) 72%, rgba(23,34,17,0) 100%)',
+                }}
+              />
+              <div className="relative w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
             </div>
 
             {/* No horizontal padding of its own: the reading page rendered
