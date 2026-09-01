@@ -533,12 +533,18 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
           <div
             ref={drawerRef}
             /* 86dvh, not 94vh — the sheet stops short of the top instead of
-               running under the status bar, so the grab handle sits somewhere
-               a thumb expects to find it and the backdrop above stays wide
-               enough to tap. vh was the wrong unit besides: it ignores the
-               home indicator, which is exactly the space a home-screen
-               install has and a browser tab does not. */
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[86dvh] overflow-y-auto animate-slide-up border-t-2 border-[#C9F24E]/30"
+               running under the status bar — the handle clears it by about the
+               width of a thumb, which is where are.na puts theirs. The sheet
+               can stand this tall because the pull now works anywhere on it;
+               at 94vh the backdrop was the only way out and far too thin to
+               be one. vh was the wrong unit besides: it ignores the home
+               indicator, which is exactly the space a home-screen install has
+               and a browser tab does not.
+
+               No top border. A lime rule across the head of the sheet drew a
+               line under nothing — the rounded corners and the ground change
+               already say where the sheet starts. */
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto animate-slide-up"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
@@ -549,7 +555,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
           >
             {/* Drag handle — touch target for swipe-to-close */}
             <div
-              className="sticky top-0 pt-4 pb-8 -mb-5 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing"
+              className="sticky top-0 pt-3 pb-6 -mb-4 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing"
               /* Solid behind the handle, then fading out beneath it. The bar
                  used to be a flat fill, so content scrolling under it was cut
                  off along a hard horizontal line. The negative margin lets the
@@ -568,10 +574,12 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             {/* Starts below the fade rather than inside it. The handle's
                 gradient overlaps the content by design, and the date is the
                 first thing it reaches. */}
-            {/* pt-6, not pt-8: the date sits just clear of the handle's
-                gradient — which has faded out by 54px from the top of the
-                sticky block — rather than a comfortable distance below it. */}
-            <div className="pb-6 pt-6">
+            {/* The date rides just under the handle's gradient, which now
+                fades out 42px from the top of the sticky block — the same
+                point this padding brings the date to. Anything more read as
+                the date floating between the handle and the card rather than
+                belonging to either. */}
+            <div className="pb-6 pt-4">
               {/* No bottom margin. The card page below already opens with 8px
                   of its own padding and 4px above the name, which is the whole
                   gap the date needs; the extra 16px here read as a gap between
