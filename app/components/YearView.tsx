@@ -568,8 +568,15 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             {/* Starts below the fade rather than inside it. The handle's
                 gradient overlaps the content by design, and the date is the
                 first thing it reaches. */}
-            <div className="pb-6 pt-8">
-              <div className="text-center mb-4 px-4">
+            {/* pt-6, not pt-8: the date sits just clear of the handle's
+                gradient — which has faded out by 54px from the top of the
+                sticky block — rather than a comfortable distance below it. */}
+            <div className="pb-6 pt-6">
+              {/* No bottom margin. The card page below already opens with 8px
+                  of its own padding and 4px above the name, which is the whole
+                  gap the date needs; the extra 16px here read as a gap between
+                  two unrelated things rather than a date belonging to a card. */}
+              <div className="text-center px-4">
                 <p
                   className="text-[#C9F24E]"
                   /* The same date line as the main screen, rather than a
