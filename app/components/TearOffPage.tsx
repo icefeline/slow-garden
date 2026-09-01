@@ -9,8 +9,30 @@ interface TearOffPageProps {
   disabled?: boolean;
 }
 
-/** Drag distance that commits the tear. */
-const COMMIT_PX = 150;
+/**
+ * Drag distance that commits the tear, measured in whatever direction the page
+ * was pulled rather than straight down.
+ *
+ * Readers reported the tear as hard to trigger, and it was: only downward travel
+ * counted, so a pull that drifted sideways — which is most of them, since a thumb
+ * arcs — spent its distance on an axis the commit test ignored.
+ *
+ * 120 rather than the old 150. The threshold was set against pure vertical travel
+ * on a 288px page; now that a diagonal pull counts for its full length, the same
+ * gesture reaches further, and the old number asked for a longer drag than the
+ * animation needs to read.
+ */
+const COMMIT_PX = 120;
+
+/**
+ * How far the page has been pulled off the pad, in any direction but up.
+ *
+ * Upward travel is dropped rather than counted: pushing the page back onto its
+ * binding is the one direction that should not tear it.
+ */
+function pullDistance(dx: number, dy: number): number {
+  return Math.hypot(dx, Math.max(0, dy));
+}
 
 /**
  * The ragged top edge, as percentages of the page width so it survives the
@@ -91,11 +113,15 @@ export default function TearOffPage({ onTear, disabled = false }: TearOffPagePro
       if (!drag.active || tornRef.current) return;
       drag.dx = e.clientX - drag.startX;
       drag.dy = e.clientY - drag.startY;
-      const pull = Math.max(0, Math.min(1, drag.dy / 320));
+      const down = Math.max(0, drag.dy);
+      const pull = Math.min(1, pullDistance(drag.dx, drag.dy) / 320);
+      // The page follows sideways at 0.7 rather than the old 0.35. At a third of
+      // the finger a horizontal pull barely moved it, so a gesture that was in
+      // fact tearing the page looked like it was being ignored.
       // written straight to style rather than through state — a re-render per
       // pointermove would make the drag feel laggy
       page.style.transform =
-        `translate(${drag.dx * 0.35}px, ${Math.max(0, drag.dy)}px) rotate(${pull * 7 + drag.dx * 0.01}deg)`;
+        `translate(${drag.dx * 0.7}px, ${down}px) rotate(${pull * 7 + drag.dx * 0.02}deg)`;
     };
 
     const end = () => {
@@ -104,10 +130,13 @@ export default function TearOffPage({ onTear, disabled = false }: TearOffPagePro
       drag.active = false;
       page.classList.add('tear-settle');
 
-      if (drag.dy > COMMIT_PX) {
+      if (pullDistance(drag.dx, drag.dy) > COMMIT_PX) {
         tornRef.current = true;
+        // Leaves in the direction it was pulled, so a sideways tear does not
+        // suddenly swing back the other way on release.
+        const away = drag.dx >= 0 ? 1 : -1;
         page.style.transform =
-          `translate(${drag.dx * 0.5 - 40}px, 900px) rotate(${18 + drag.dx * 0.02}deg)`;
+          `translate(${drag.dx * 0.9 + away * 60}px, 900px) rotate(${away * 18 + drag.dx * 0.02}deg)`;
         if (reduceMotion) {
           onTear();
         } else {
