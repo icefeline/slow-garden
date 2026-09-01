@@ -141,6 +141,9 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   const touchStartY = useRef<number>(0);
   const [drawerTranslateY, setDrawerTranslateY] = useState(0);
   const savedScrollY = useRef(0);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  /** Whether the current touch is dragging the sheet rather than scrolling it. */
+  const draggingSheet = useRef(false);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -253,22 +256,67 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
   const closeDrawer = () => setDrawerOpen(false);
 
-  const handleDrawerTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-  };
+  /**
+   * Pull-to-close, listening on the whole sheet rather than on the handle alone.
+   *
+   * The handle was a 44px target on a sheet that covers the screen, and the only
+   * other way out was a backdrop sliver a few points tall. Miss both and the
+   * drawer could not be dismissed at all — on a home-screen install, where there
+   * is no browser chrome to fall back to, that meant force-quitting the app.
+   *
+   * The sheet is also its own scroller, so a downward drag is ambiguous: it
+   * means "scroll up through the reading" until the content is at the top, and
+   * only then "put the sheet away". That is the check below, taken once at
+   * touchstart — deciding per-frame would let a fast flick change its mind
+   * halfway through and jump the sheet.
+   *
+   * The listener is registered natively so it can be non-passive. Without
+   * preventDefault iOS runs its own rubber-band underneath the drag, which is
+   * the "it just pulls the whole screen down" in the report.
+   */
+  useEffect(() => {
+    const sheet = drawerRef.current;
+    if (!sheet) return;
 
-  const handleDrawerTouchMove = (e: React.TouchEvent) => {
-    const dy = e.touches[0].clientY - touchStartY.current;
-    if (dy > 0) setDrawerTranslateY(dy); // only allow downward drag
-  };
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY.current = e.touches[0].clientY;
+      draggingSheet.current = sheet.scrollTop <= 0;
+    };
 
-  const handleDrawerTouchEnd = () => {
-    if (drawerTranslateY > 80) {
-      closeDrawer();
-    } else {
-      setDrawerTranslateY(0);
-    }
-  };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!draggingSheet.current) return;
+      const dy = e.touches[0].clientY - touchStartY.current;
+      if (dy <= 0) {
+        // Dragged back up past where it started — hand the gesture back to the
+        // scroller rather than pinning the sheet at zero for the rest of it.
+        draggingSheet.current = false;
+        setDrawerTranslateY(0);
+        return;
+      }
+      e.preventDefault();
+      setDrawerTranslateY(dy);
+    };
+
+    const onTouchEnd = () => {
+      if (!draggingSheet.current) return;
+      draggingSheet.current = false;
+      setDrawerTranslateY((dy) => {
+        if (dy > 80) closeDrawer();
+        return 0;
+      });
+    };
+
+    sheet.addEventListener('touchstart', onTouchStart, { passive: true });
+    sheet.addEventListener('touchmove', onTouchMove, { passive: false });
+    sheet.addEventListener('touchend', onTouchEnd);
+    sheet.addEventListener('touchcancel', onTouchEnd);
+    return () => {
+      sheet.removeEventListener('touchstart', onTouchStart);
+      sheet.removeEventListener('touchmove', onTouchMove);
+      sheet.removeEventListener('touchend', onTouchEnd);
+      sheet.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [drawerOpen]);
 
   const handleDayClick = (date: string, hasCard: boolean, isToday: boolean) => {
     if (!hasCard) return;
@@ -483,7 +531,20 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
           />
           {/* Drawer panel */}
           <div
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[94vh] overflow-y-auto animate-slide-up border-t-2 border-[#C9F24E]/30"
+            ref={drawerRef}
+            /* 86dvh, not 94vh — the sheet stops short of the top instead of
+               running under the status bar — the handle clears it by about the
+               width of a thumb, which is where are.na puts theirs. The sheet
+               can stand this tall because the pull now works anywhere on it;
+               at 94vh the backdrop was the only way out and far too thin to
+               be one. vh was the wrong unit besides: it ignores the home
+               indicator, which is exactly the space a home-screen install has
+               and a browser tab does not.
+
+               No top border. A lime rule across the head of the sheet drew a
+               line under nothing — the rounded corners and the ground change
+               already say where the sheet starts. */
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto animate-slide-up"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
@@ -493,21 +554,34 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             }}
           >
             {/* Drag handle — touch target for swipe-to-close */}
-            <div
-              className="sticky top-0 pt-4 pb-8 -mb-5 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing"
-              /* Solid behind the handle, then fading out beneath it. The bar
-                 used to be a flat fill, so content scrolling under it was cut
-                 off along a hard horizontal line. The negative margin lets the
-                 fade overlap the content rather than reserving space for it. */
-              style={{
-                background:
-                  'linear-gradient(to bottom, #172211 0%, #172211 46%, rgba(23,34,17,0.85) 68%, rgba(23,34,17,0) 100%)',
-              }}
-              onTouchStart={handleDrawerTouchStart}
-              onTouchMove={handleDrawerTouchMove}
-              onTouchEnd={handleDrawerTouchEnd}
-            >
-              <div className="w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
+            <div className="sticky top-0 pt-3 pb-6 -mb-4 flex justify-center rounded-t-3xl z-10 cursor-grab active:cursor-grabbing">
+              {/* Solid behind the handle, then fading out beneath it, so content
+                  scrolling under is fed out rather than cut along a hard line.
+                  That fade is the intent and stays.
+
+                  It starts 2px above the sheet's own top edge, which is the
+                  only part that is a fix. The sheet carries both a radius and a
+                  transform, so its clipped content rasterises on a different
+                  pixel grid from this scrim; at a fractional offset — the sheet
+                  sits at x.96 on a 2x screen — the two disagreed by a hairline
+                  and a sliver of moving content showed along the join. Starting
+                  above the edge means there is no shared boundary to disagree
+                  about. The overhang is clipped by the sheet's own overflow.
+
+                  It has to be transparent again by 42px, where the date sits:
+                  covering the seam is not worth hiding the day. The bar is
+                  relative so it paints above the scrim. */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 rounded-t-3xl"
+                style={{
+                  top: '-2px',
+                  height: '44px',
+                  background:
+                    'linear-gradient(to bottom, #172211 0%, #172211 50%, rgba(23,34,17,0.85) 72%, rgba(23,34,17,0) 100%)',
+                }}
+              />
+              <div className="relative w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
             </div>
 
             {/* No horizontal padding of its own: the reading page rendered
@@ -516,15 +590,27 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
             {/* Starts below the fade rather than inside it. The handle's
                 gradient overlaps the content by design, and the date is the
                 first thing it reaches. */}
-            <div className="pb-6 pt-8">
-              <div className="text-center mb-4 px-4">
+            {/* The date rides just under the handle's gradient, which now
+                fades out 42px from the top of the sticky block — the same
+                point this padding brings the date to. Anything more read as
+                the date floating between the handle and the card rather than
+                belonging to either. */}
+            <div className="pb-6 pt-4">
+              {/* No bottom margin. The card page below already opens with 8px
+                  of its own padding and 4px above the name, which is the whole
+                  gap the date needs; the extra 16px here read as a gap between
+                  two unrelated things rather than a date belonging to a card. */}
+              <div className="text-center px-4">
                 <p
                   className="text-[#C9F24E]"
                   /* The same date line as the main screen, rather than a
                      drawer-sized one — it was three times the size there and
-                     took the room the card wanted. */
+                     took the room the card wanted. That claim had drifted: the
+                     two clamps were near each other but not equal. Both now
+                     take the nav's size, so the date reads the same wherever a
+                     reading is opened from. */
                   style={{
-                    fontSize: 'clamp(11px, 2.4vw, 13px)',
+                    fontSize: 'clamp(9px, 2.2vw, 11px)',
                     letterSpacing: '0.18em',
                     fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
                   }}
