@@ -164,6 +164,10 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * at all.
    */
   const dragY = useRef(0);
+  /** Last touch position and time, for the flick speed measured on release. */
+  const lastY = useRef(0);
+  const lastMoveAt = useRef(0);
+  const velocity = useRef(0);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -304,17 +308,57 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
     };
 
     const onTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
+      const y = e.touches[0].clientY;
+      touchStartY.current = y;
+      lastY.current = y;
+      lastMoveAt.current = performance.now();
+      velocity.current = 0;
       draggingSheet.current = sheet.scrollTop <= 0;
       dragY.current = 0;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!draggingSheet.current) return;
-      const dy = e.touches[0].clientY - touchStartY.current;
-      if (dy <= 0) {
+      const y = e.touches[0].clientY;
+
+      // Speed of the last moment of the drag, in px per ms, positive downward.
+      // Kept per-move rather than measured across the whole gesture: what
+      // decides a flick is how fast the thumb was going when it left, not its
+      // average over a drag that may have paused halfway.
+      const now = performance.now();
+      const elapsed = now - lastMoveAt.current;
+      if (elapsed > 0) velocity.current = (y - lastY.current) / elapsed;
+      lastY.current = y;
+      lastMoveAt.current = now;
+
+      if (!draggingSheet.current) {
+        // The scroller has run out of content and the thumb is still coming
+        // down, so the sheet takes the gesture over without it being released.
+        //
+        // Deciding this once at touchstart is what made the drawer feel stuck:
+        // a sheet scrolled even slightly down treated the whole gesture as a
+        // scroll, so closing it took a drag to reach the top, a lift, and then
+        // a second drag. iOS hands over mid-gesture and so does this now.
+        //
+        // The origin is rebased to where the thumb is at handover rather than
+        // where the gesture began. Using the original start would jump the
+        // sheet down by everything already spent on scrolling.
+        if (sheet.scrollTop <= 0 && y > touchStartY.current) {
+          draggingSheet.current = true;
+          touchStartY.current = y;
+        } else {
+          return;
+        }
+      }
+
+      const dy = y - touchStartY.current;
+      if (dy < 0) {
         // Dragged back up past where it started — hand the gesture back to the
         // scroller rather than pinning the sheet at zero for the rest of it.
+        //
+        // Strictly less than zero, not at-or-below. On the frame the sheet
+        // takes over from the scroller the origin is rebased to the thumb, so
+        // dy is exactly 0 there; `<= 0` handed the gesture straight back, and
+        // the next frame took it again, and the sheet never moved at all.
         draggingSheet.current = false;
         setY(0);
         return;
@@ -330,8 +374,16 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       // a plain value here so the decision to close is an ordinary side effect
       // rather than something smuggled into React's reducer.
       const dy = dragY.current;
+      const speed = velocity.current;
       dragY.current = 0;
-      if (dy > 80) closeDrawer();
+      velocity.current = 0;
+
+      // Distance or intent. 80px is the deliberate pull; the second clause is
+      // the flick — a short, fast push downward that every native sheet treats
+      // as a dismissal, and that felt ignored here because only distance
+      // counted. 0.5px/ms is about 500px a second, well above a drag that
+      // happens to end while still moving.
+      if (dy > 80 || (dy > 24 && speed > 0.5)) closeDrawer();
       else setDrawerTranslateY(0);
     };
 
