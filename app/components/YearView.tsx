@@ -141,9 +141,29 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
   const touchStartY = useRef<number>(0);
   const [drawerTranslateY, setDrawerTranslateY] = useState(0);
   const savedScrollY = useRef(0);
-  const drawerRef = useRef<HTMLDivElement>(null);
+  /**
+   * The sheet element, held in state rather than in a ref.
+   *
+   * A ref does not tell an effect when it was filled. The sheet only renders
+   * once `selectedCard` has resolved, which happens a render after `drawerOpen`
+   * turns true — so an effect keyed on `drawerOpen` ran while the ref was still
+   * null, returned early, and never ran again, because its dependency never
+   * changed a second time. The listeners were never attached at all.
+   *
+   * A callback ref puts the node itself in the dependency array, so the effect
+   * runs exactly when the element mounts, whichever render that turns out to be.
+   */
+  const [sheetEl, setSheetEl] = useState<HTMLDivElement | null>(null);
   /** Whether the current touch is dragging the sheet rather than scrolling it. */
   const draggingSheet = useRef(false);
+  /**
+   * How far the sheet has been dragged, mirrored out of state so touchend can
+   * read it synchronously. It was read inside a `setDrawerTranslateY` updater,
+   * which is meant to be a pure function of the previous state — closing the
+   * drawer from inside one is a side effect React is free to run twice or not
+   * at all.
+   */
+  const dragY = useRef(0);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -275,12 +295,18 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * the "it just pulls the whole screen down" in the report.
    */
   useEffect(() => {
-    const sheet = drawerRef.current;
+    const sheet = sheetEl;
     if (!sheet) return;
+
+    const setY = (dy: number) => {
+      dragY.current = dy;
+      setDrawerTranslateY(dy);
+    };
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY;
       draggingSheet.current = sheet.scrollTop <= 0;
+      dragY.current = 0;
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -290,20 +316,23 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
         // Dragged back up past where it started — hand the gesture back to the
         // scroller rather than pinning the sheet at zero for the rest of it.
         draggingSheet.current = false;
-        setDrawerTranslateY(0);
+        setY(0);
         return;
       }
       e.preventDefault();
-      setDrawerTranslateY(dy);
+      setY(dy);
     };
 
     const onTouchEnd = () => {
       if (!draggingSheet.current) return;
       draggingSheet.current = false;
-      setDrawerTranslateY((dy) => {
-        if (dy > 80) closeDrawer();
-        return 0;
-      });
+      // Read from the ref, not from a state updater. The distance is needed as
+      // a plain value here so the decision to close is an ordinary side effect
+      // rather than something smuggled into React's reducer.
+      const dy = dragY.current;
+      dragY.current = 0;
+      if (dy > 80) closeDrawer();
+      else setDrawerTranslateY(0);
     };
 
     sheet.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -316,7 +345,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       sheet.removeEventListener('touchend', onTouchEnd);
       sheet.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [drawerOpen]);
+  }, [sheetEl]);
 
   const handleDayClick = (date: string, hasCard: boolean, isToday: boolean) => {
     if (!hasCard) return;
@@ -531,7 +560,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
           />
           {/* Drawer panel */}
           <div
-            ref={drawerRef}
+            ref={setSheetEl}
             /* 86dvh, not 94vh — the sheet stops short of the top instead of
                running under the status bar — the handle clears it by about the
                width of a thumb, which is where are.na puts theirs. The sheet
@@ -577,8 +606,14 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                 style={{
                   top: '-2px',
                   height: '44px',
+                  /* Same height, softer fall. The solid part now ends at 34%
+                     rather than 50% and the stops in between are closer
+                     together in value, so the scrim reads as a fade rather than
+                     as a band with an edge on it. Still fully opaque across the
+                     sheet's own top edge, which is the part that was covering
+                     the hairline. */
                   background:
-                    'linear-gradient(to bottom, #172211 0%, #172211 50%, rgba(23,34,17,0.85) 72%, rgba(23,34,17,0) 100%)',
+                    'linear-gradient(to bottom, #172211 0%, #172211 34%, rgba(23,34,17,0.72) 58%, rgba(23,34,17,0.34) 78%, rgba(23,34,17,0) 100%)',
                 }}
               />
               <div className="relative w-12 h-1.5 bg-[#C9F24E]/40 rounded-full" />
