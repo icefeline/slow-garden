@@ -589,9 +589,12 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                   className="text-[#C9F24E]"
                   /* The same date line as the main screen, rather than a
                      drawer-sized one — it was three times the size there and
-                     took the room the card wanted. */
+                     took the room the card wanted. That claim had drifted: the
+                     two clamps were near each other but not equal. Both now
+                     take the nav's size, so the date reads the same wherever a
+                     reading is opened from. */
                   style={{
-                    fontSize: 'clamp(11px, 2.4vw, 13px)',
+                    fontSize: 'clamp(9px, 2.2vw, 11px)',
                     letterSpacing: '0.18em',
                     fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
                   }}
