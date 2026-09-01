@@ -510,6 +510,8 @@ export default function Home() {
     // A past day with nothing written has no log to show.
     if (!isToday && !reflection.trim()) return null;
 
+    const hasSavedLog = isToday ? savedLength > 0 : reflection.trim().length > 0;
+
     return (
       <section className={`${cardPage.col} ${cardPage.input}`}>
         <div className={cardPage.prompt}>&gt; INPUT YOUR_THOUGHTS</div>
@@ -528,12 +530,20 @@ export default function Home() {
         {/* Directly under the writing it is confirming. Below the share button
             it read as a receipt for the share rather than for the log, and sat
             far enough from the textarea to be answering nothing in particular.
-            Only a log that has something in it can confirm itself. */}
-        {(isToday ? savedLength > 0 : reflection.trim().length > 0) && (
-          <div className={cardPage.saved}>
-            &gt; SAVED TO {dateString}.LOG <span className={cardPage.cursor}>_</span>
-          </div>
-        )}
+            Only a log that has something in it can confirm itself.
+
+            Hidden rather than absent, so its line is reserved either way. The
+            confirmation arrives on blur, and if it took up no room until then
+            it would shove the share button down at the moment the reader looked
+            away from the textarea — the one thing on the page that is supposed
+            to be reassuring, moving something under their thumb. */}
+        <div
+          className={cardPage.saved}
+          style={{ visibility: hasSavedLog ? 'visible' : 'hidden' }}
+          aria-hidden={!hasSavedLog}
+        >
+          &gt; SAVED TO {dateString}.LOG <span className={cardPage.cursor}>_</span>
+        </div>
 
         <button
           type="button"
