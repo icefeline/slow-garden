@@ -34,8 +34,9 @@
 
   --pad: 20px;
   --measure: 960px;
-  /* What the name has to fit into: the screen on a phone, the column above 880. */
-  --name-space: 100vw;
+  /* What the name has to fit into: the shell on a phone, the column above 880.
+     Sized against the shell rather than the viewport — see .shell. */
+  --name-space: 100cqw;
 
   /* No ground of its own: the page sits on the app's own background and
      texture. The ink token stays defined because the module and the rules are
@@ -347,31 +348,101 @@
   .cursor { animation: none; }
 }
 
-/* ============================================================
-   DESKTOP — 880px and up
-   ============================================================ */
-@media (min-width: 880px) {
-  .page { padding: 8px 0 0; }
-  .col { width: var(--measure); margin: 0 auto; padding-inline: 0; }
-  .page { --name-space: var(--measure); }
+/* The page's own width, not the window's.
+   Every rule below asks how much room the reading actually has, which used to
+   be the same question as how wide the browser was — the reading always filled
+   the screen. It doesn't any more: the year view opens a past card in a ~420px
+   window on a desktop, and a viewport query there hands a phone-width column
+   the full two-column desktop layout. The shell is what the reading is poured
+   into, so the shell is what it measures. On the main reading page the shell
+   is the viewport, so nothing about that page changes. */
+.shell {
+  container-type: inline-size;
+  container-name: cardpage;
+}
 
-  /* Out of the column and onto the page: full viewport width, flat 138px for
-     every card. The wrapper clips rather than scrolls, so a name wider than the
-     window costs its outer edges instead of dragging the whole page sideways. */
+/* The same reading, poured into a year-view window instead of a page.
+   A separate container name because the two surfaces turn wide at different
+   sizes: the page has the whole screen and waits for 880, while a window the
+   reader has deliberately dragged wider is asking for the wide reading at 640.
+   Same layout either way — see --wide below. */
+.shellWindow {
+  container-name: cardwindow;
+}
+
+/* The card art is sized with Tailwind's viewport breakpoints (w-72 md:w-96),
+   which have the same problem — in a narrow window on a wide screen they pick
+   the desktop size and overflow the column. Same widths, asked of the shell.
+   These outrank the utilities on specificity, so the utilities are inert. */
+.page [data-card-image] { width: 18rem; }
+
+/* ============================================================
+   DESKTOP — the wide reading
+
+   Two surfaces reach it at different widths, so the threshold is decided
+   twice, in the two small blocks directly below, and the layout itself is
+   written once, in the `style(--wide: 1)` block after them. Adding a third
+   surface means adding a threshold, not another copy of the layout.
+
+   The two blocks differ in exactly one thing besides the number: what the
+   measure is. The page has room to spare and pins the column at the spec's
+   960px. A window does not — it is between 640 and 860 wide — so there the
+   column is simply the window, less a gutter, and the figures that key off
+   --measure follow it down.
+   ============================================================ */
+@container cardpage (min-width: 880px) {
+  .page {
+    --wide: 1;
+    --measure: 960px;
+    --margin-col: 150px;
+    --name-size: 138px;
+    --name-space: var(--measure);
+  }
+}
+
+@container cardwindow (min-width: 640px) {
+  .page {
+    --wide: 1;
+    --measure: calc(100cqw - 40px);
+    /* The margins hold two short columns of figures. They give up width
+       first, because the card in the middle cannot. */
+    --margin-col: clamp(72px, 12cqw, 150px);
+    /* 138px is a screen-width headline. In a window it is set to the window,
+       so the name still bleeds the full measure without losing both its ends
+       to the clip. */
+    --name-size: min(138px, 15.5cqw);
+    --name-space: var(--measure);
+  }
+}
+
+/* Everything below is a descendant of .page, which is what makes one copy
+   possible: --wide inherits, and a style query reads it off the ancestor. The
+   two declarations that belong to .page itself cannot ask about a value they
+   set, so they live in the threshold blocks above. */
+@container style(--wide: 1) {
+  .page [data-card-image] { width: 24rem; }
+  .col { width: var(--measure); margin: 0 auto; padding-inline: 0; }
+
+  /* Out of the column and onto the page: the full width of the shell, one
+     size for every card in the deck. The wrapper clips rather than scrolls, so
+     a name wider than the shell costs its outer edges instead of dragging the
+     whole page sideways. --name-size is 138px on the page, per SPEC; a window
+     sets it to its own width so the flat-across-the-deck rule survives at a
+     size the spec never had to cover. */
   .cardname {
-    font-size: 138px;
+    font-size: var(--name-size, 138px);
     line-height: .82;
     letter-spacing: -.052em;
     margin: 6px 0 0;
-    width: 100vw;
-    max-width: 100vw;
+    width: 100cqw;
+    max-width: 100cqw;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
     overflow: hidden;
   }
 
-  .plate { margin-top: 26px; display: grid; grid-template-columns: 150px 1fr 150px; align-items: start; }
+  .plate { margin-top: 26px; display: grid; grid-template-columns: var(--margin-col, 150px) 1fr var(--margin-col, 150px); align-items: start; }
 
   .marginL, .marginR {
     display: block;
@@ -426,6 +497,93 @@
   .input textarea { padding: 14px; }
   .saved { font-size: 18px; }
 }
+
+/*
+ * A window cannot afford the page's clip.
+ *
+ * SPEC §1.2 sets every card's name at one size and lets a long one lose its
+ * outer edges rather than wrap or shrink — which is a fair trade on a screen
+ * 1440px wide, where only the longest names in the deck reach the edges at
+ * all. An 860px window is narrower than the name itself, so the same rule
+ * costs whole words instead of serifs. Here, and only here, the name falls
+ * back to what fits, the same --fit the phone layout already uses.
+ */
+/*
+ * One size for every card in the deck, until the window is wide.
+ *
+ * The phone shrinks a name to fit — it has exactly one width to work with and
+ * the name must not push the card down the screen. A window is a different
+ * case: it opens at one width for every card, so a name that arrives at a
+ * different size for each one reads as a bug rather than as fitting. Flat
+ * size, and a long name takes a second line, which is what the window was
+ * drawn with in the first place.
+ */
+.shellWindow .cardname {
+  font-size: 42px;
+  line-height: .95;
+  letter-spacing: -.035em;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+/*
+ * Past 640 the spec's single bleeding line comes back — restated here because
+ * the narrow rule above outranks the plain .cardname inside the wide block.
+ * Still capped to what fits: a window is narrower than the name at 138px.
+ */
+@container style(--wide: 1) {
+  .shellWindow .cardname {
+    font-size: min(var(--name-size, 138px), var(--fit));
+    line-height: .82;
+    letter-spacing: -.052em;
+    white-space: nowrap;
+  }
+}
+
+/*
+ * The sky, applied to the reading.
+ *
+ * SPEC's palette is one reading on one ground — paper white on the app's dark
+ * green. A window carries whichever sky the reader opened the card under, so
+ * that ground moves, and every ink that was chosen against it has to move with
+ * it or stop being readable: white body copy on a 07:00 sky is invisible.
+ *
+ * Only the tokens move. Not one rule below the token block knows a sky exists,
+ * which is the point — the spec's structure (SPEC §2, tokens in one place)
+ * is what makes this a palette swap rather than a second stylesheet.
+ *
+ * The two constants stay constant. --lime is a FILL here, not a colour: it is
+ * the module's ground, and the sheet's own finding is that lime reads on all
+ * eight. Lime used as TYPE is the thing that fails on a pale sky, so the two
+ * rules that do that — the > prompts and the DONE line — take the sky's ink
+ * instead, which is the same hand-off the titles already make at dusk.
+ */
+.shellWindow .page {
+  --paper: var(--sky-ink);
+  --paper-2: var(--sky-body);
+  /*
+    Four muted greys become one.
+    
+    On the dark green page the quiet tiers are fixed colours picked against one
+    ground, and their distance from each other costs nothing. Over a sky they
+    have to be mixed from the body ink, and every percent of transparency is a
+    percent of contrast given back to the gradient behind: measured across all
+    eight skies, anything under ~78% drops below 4.5:1 somewhere. So there is
+    room for exactly one quiet tier here, not four, and the hierarchy the four
+    used to carry is left to size and face — which is where most of it already
+    lived. The hairline is the one exception: it is a graphic, needs 3:1 rather
+    than 4.5:1, and can afford to sit further back.
+  */
+  --paper-3: color-mix(in srgb, var(--sky-body) 78%, transparent);
+  --moss: color-mix(in srgb, var(--sky-body) 78%, transparent);
+  --moss-2: color-mix(in srgb, var(--sky-body) 78%, transparent);
+  --moss-3: color-mix(in srgb, var(--sky-body) 78%, transparent);
+  --rule: color-mix(in srgb, var(--sky-body) 70%, transparent);
+}
+
+.shellWindow .prompt,
+.shellWindow .done { color: var(--sky-ink); }
+
 
 /* --- supporter unlock -------------------------------------- */
 /* Sits under the coffee link on the quota wall. Typed into rather than
