@@ -427,7 +427,23 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       lastY.current = y;
       lastMoveAt.current = performance.now();
       velocity.current = 0;
-      draggingSheet.current = sheet.scrollTop <= 0;
+      /*
+        Undecided, on purpose.
+        
+        This used to claim the gesture whenever the sheet was at the top —
+        which it always is the moment it opens. An upward swipe meant to read
+        the card was then treated as a drag, clamped to zero because the sheet
+        cannot go above rest, and preventDefault'd so the scroller never saw
+        it. scrollTop could not leave zero, so the next touch made the same
+        decision, and the content could not be scrolled at all.
+        
+        Direction is what separates the two gestures, and direction is not
+        known yet at touchstart. The handover below already reads it correctly
+        for both — down at the top hands the sheet the gesture, anything else
+        leaves it with the scroller — so the honest starting position is that
+        nobody owns it.
+      */
+      draggingSheet.current = false;
       dragY.current = 0;
     };
 
