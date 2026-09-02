@@ -560,8 +560,25 @@ export default function Home() {
     const entry = journalEntries.find(e => e.date === date);
     if (!entry) return; // No card for this date
 
+    /*
+     * The card that was actually drawn that day.
+     *
+     * This was missing, and everything around it disguised the fact: the date
+     * changed, the orientation changed, the view changed, and the card itself
+     * stayed whatever was already loaded — which on the way in from the year
+     * view is always today's. So a past day opened today's card wearing an
+     * older date, and it read as the app refusing to leave today.
+     *
+     * The drawer never had the bug because YearView resolves the card from the
+     * entry itself before rendering. Desktop had no equivalent, so it is done
+     * here, from the same entry, and both routes now show what was drawn.
+     */
+    const drawnCard = tarotDeck.find(c => c.id === entry.cardId);
+    if (!drawnCard) return; // an id with no card behind it: leave the view alone
+
     const reversed = localStorage.getItem(`reversed-${date}`) === 'true';
 
+    setCard(drawnCard);
     setDateString(date);
     setIsReversed(reversed);
     setIsRevealed(true);
