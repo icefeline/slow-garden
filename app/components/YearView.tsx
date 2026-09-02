@@ -379,7 +379,11 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       lastY.current = y;
       lastMoveAt.current = performance.now();
       velocity.current = 0;
-      draggingSheet.current = sheet.scrollTop <= 0;
+      // Claimed on the first downward move, never here. Claiming at touchstart
+      // because the scroller happened to be at the top took every gesture that
+      // began there — including the upward ones — and preventDefault meant the
+      // content could not be scrolled at all.
+      draggingSheet.current = false;
       dragY.current = 0;
     };
 
@@ -418,18 +422,19 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
       const dy = y - touchStartY.current;
 
-      // Once the sheet has the gesture it keeps it until the thumb lifts, and
-      // follows in both directions: down away from rest, back up towards it.
-      //
-      // It used to give the gesture back to the scroller the moment dy went
-      // negative, snapping home. A thumb does not travel in one direction — it
-      // wobbles a pixel upward constantly — so a drag would cancel itself
-      // partway and have to be started again. That is the drawer "needing
-      // several drags", and it is what a native sheet never does.
-      //
-      // Clamped at zero so the sheet cannot be pulled above where it rests.
-      // Dragging up past that point simply holds it at rest rather than
-      // handing back mid-gesture; the scroller gets its turn on the next touch.
+      // Handing the gesture back needs a deliberate push upward, not any
+      // upward pixel at all. A thumb wobbles constantly, and releasing on the
+      // first negative frame made drags cancel themselves partway; releasing on
+      // none of them made the content impossible to scroll. Twelve pixels is
+      // past a wobble and short of a decision.
+      if (dy < -12) {
+        draggingSheet.current = false;
+        setY(0);
+        return;
+      }
+
+      // Otherwise the sheet follows in both directions, clamped so it cannot be
+      // pulled above where it rests.
       e.preventDefault();
       setY(Math.max(0, dy));
     };
