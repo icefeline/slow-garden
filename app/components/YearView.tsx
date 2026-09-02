@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import TarotCard from './TarotCard';
+import PastCardReading from './PastCardReading';
+import CardWindow, { rectForCell, WindowRect } from './CardWindow';
+import { skyForDraw, type Sky } from '@/lib/data/skies';
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
 import { tarotDeck } from '@/lib/data/tarot-deck';
 import { LABEL_TYPE } from './type';
@@ -154,6 +156,52 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * runs exactly when the element mounts, whichever render that turns out to be.
    */
   const [sheetEl, setSheetEl] = useState<HTMLDivElement | null>(null);
+
+  /**
+   * The past readings open on the desktop, front-most last.
+   *
+   * Desktop used to leave the year entirely to read a past card, which is a
+   * heavy price for a glance at one day — you lost your place in the grid and
+   * had to come back to it. These are the desktop counterpart to the mobile
+   * sheet: same reading, but the year stays where it was, behind them, and
+   * several days can be held open beside each other.
+   */
+  const [openWins, setOpenWins] = useState<
+    { date: string; rect: WindowRect; z: number; sky: Sky }[]
+  >([]);
+  const topZ = useRef(60);
+
+  const openWindow = (date: string, cell: HTMLElement | null) => {
+    setOpenWins(prev => {
+      const already = prev.find(w => w.date === date);
+      // Clicking a day that is already open raises it rather than stacking a
+      // second copy of the same reading.
+      if (already) {
+        return prev.map(w => w.date === date ? { ...w, z: ++topZ.current } : w);
+      }
+      const rect = rectForCell(cell?.getBoundingClientRect() ?? null, prev.length);
+      // The hour the card was drawn, not the hour it is being read — so a
+      // window's colours are a property of that day, and reopening it a month
+      // later brings back the same sky.
+      return prev.concat({ date, rect, z: ++topZ.current, sky: skyForDraw(date) });
+    });
+  };
+
+  const closeWindow = (date: string) =>
+    setOpenWins(prev => prev.filter(w => w.date !== date));
+
+  // Esc closes the front window, the way it closes the sheet's backdrop.
+  useEffect(() => {
+    if (!openWins.length) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      const front = openWins.reduce((a, b) => (b.z > a.z ? b : a));
+      closeWindow(front.date);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [openWins]);
+
   /** Whether the current touch is dragging the sheet rather than scrolling it. */
   const draggingSheet = useRef(false);
   /**
@@ -466,7 +514,12 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
     };
   }, [sheetEl]);
 
-  const handleDayClick = (date: string, hasCard: boolean, isToday: boolean) => {
+  const handleDayClick = (
+    date: string,
+    hasCard: boolean,
+    isToday: boolean,
+    cell?: HTMLElement,
+  ) => {
     if (!hasCard) return;
     if (window.innerWidth < 768) {
       if (isToday) {
@@ -476,8 +529,12 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
         setSelectedDate(date);
         setDrawerOpen(true);
       }
-    } else {
+    } else if (isToday) {
+      // Today is not a past card — it is the reading you are living in, and it
+      // still belongs on its own page.
       onDateClick(date);
+    } else {
+      openWindow(date, cell ?? null);
     }
   };
 
@@ -594,7 +651,7 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                       className={`relative overflow-hidden rounded-sm aspect-[2/3] ${!isCurrMonth ? 'opacity-20' : ''} ${isToday ? 'ring-1 ring-[#C9F24E]' : ''}`}
                     >
                       <button
-                        onClick={() => isCurrMonth && handleDayClick(date, hasCard, isToday)}
+                        onClick={e => isCurrMonth && handleDayClick(date, hasCard, isToday, e.currentTarget)}
                         className={`w-full h-full relative block ${hasCard && isCurrMonth ? 'cursor-pointer active:opacity-75' : 'cursor-default'}`}
                         tabIndex={hasCard && isCurrMonth ? 0 : -1}
                         aria-label={
@@ -769,67 +826,41 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                 point this padding brings the date to. Anything more read as
                 the date floating between the handle and the card rather than
                 belonging to either. */}
-            <div className="pb-6 pt-4">
-              {/* No bottom margin. The card page below already opens with 8px
-                  of its own padding and 4px above the name, which is the whole
-                  gap the date needs; the extra 16px here read as a gap between
-                  two unrelated things rather than a date belonging to a card. */}
-              <div className="text-center px-4">
-                <p
-                  className="text-[#C9F24E]"
-                  /* The same date line as the main screen, rather than a
-                     drawer-sized one — it was three times the size there and
-                     took the room the card wanted. That claim had drifted: the
-                     two clamps were near each other but not equal. Both now
-                     take the nav's size, so the date reads the same wherever a
-                     reading is opened from. */
-                  style={{
-                    fontSize: 'clamp(9px, 2.2vw, 11px)',
-                    letterSpacing: '0.18em',
-                    fontFamily: 'var(--font-dm-mono), ui-monospace, monospace',
-                  }}
-                >
-                  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
-                    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-                  }).toLowerCase()}
-                </p>
-              </div>
-
-              <div className="mb-4">
-                <TarotCard
-                  card={selectedCard}
-                  isReversed={selectedEntry.isReversed || false}
-                  isRevealed={true}
-                  cardDate={selectedDate}
-                />
-              </div>
-
-              {(() => {
-                const reflection = localStorage.getItem(`reflection-${selectedDate}`);
-                if (reflection && reflection.trim()) {
-                  return (
-                    <div className="mt-4 px-5">
-                      <h3
-                        className="text-[#C9F24E] mb-2"
-                        style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)' }}
-                      >
-                        reflection
-                      </h3>
-                      <div
-                        className="text-[#F7F4E6] leading-relaxed"
-                        style={{ fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: 'clamp(14px, 3.4vw, 16px)' }}
-                      >
-                        {reflection}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-            </div>
+            <PastCardReading
+              date={selectedDate}
+              card={selectedCard}
+              isReversed={selectedEntry.isReversed || false}
+            />
           </div>
         </>
       )}
+
+      {/* Past readings, open over the year (desktop). No backdrop and no body
+          scroll lock, unlike the sheet: the year behind them stays live, which
+          is the whole reason these are windows and not a second drawer. */}
+      {openWins.map(w => {
+        const entry = journalEntries.find(e => e.date === w.date);
+        const card = entry ? cardLookup.get(entry.cardId) : null;
+        if (!entry || !card) return null;
+        return (
+          <CardWindow
+            key={w.date}
+            date={w.date}
+            card={card}
+            isReversed={entry.isReversed || false}
+            rect={w.rect}
+            z={w.z}
+            sky={w.sky}
+            onFocus={() => setOpenWins(prev =>
+              // Already front-most: don't churn state on every mousedown.
+              prev.every(v => v.z <= w.z)
+                ? prev
+                : prev.map(v => v.date === w.date ? { ...v, z: ++topZ.current } : v)
+            )}
+            onClose={() => closeWindow(w.date)}
+          />
+        );
+      })}
     </div>
   );
 }

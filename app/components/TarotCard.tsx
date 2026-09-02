@@ -33,6 +33,13 @@ interface TarotCardProps {
    * reflection text and its per-date storage key live in page.tsx.
    */
   footer?: ReactNode;
+  /**
+   * Which surface the reading is poured into. It decides nothing about the
+   * look — only how much room the reading waits for before it lays itself out
+   * wide: the whole screen waits for 880, a year-view window for 640, because
+   * a window that wide is one the reader dragged there on purpose.
+   */
+  surface?: 'page' | 'window';
 }
 
 // Memory types
@@ -147,7 +154,7 @@ function convertToTransitData(transit: ActiveTransit): TransitData {
   };
 }
 
-export default function TarotCard({ card, isReversed, isRevealed, animateReveal, artVisibleEarly, userName, cardDate, footer }: TarotCardProps) {
+export default function TarotCard({ card, isReversed, isRevealed, animateReveal, artVisibleEarly, userName, cardDate, footer, surface = 'page' }: TarotCardProps) {
   const activeMeaning = getActiveMeaning(card, isReversed);
   const activeKeywords = getActiveKeywords(card, isReversed);
 
@@ -514,6 +521,10 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
   const marginRows = buildMarginRows();
 
   return (
+    /* The reading measures itself against this, not against the browser, so it
+       lays out the same whether it fills the screen or sits in a 420px window
+       on the year view. See .shell in card-page.module.css. */
+    <div className={`${styles.shell} ${surface === 'window' ? styles.shellWindow : ''}`}>
     <main className={styles.page}>
       <div className={styles.col}>
         <CardName name={card.name} />
@@ -588,6 +599,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
 
       {footer}
     </main>
+    </div>
   );
 
 }
