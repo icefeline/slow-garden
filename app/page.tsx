@@ -514,7 +514,9 @@ export default function Home() {
 
     return (
       <section className={`${cardPage.col} ${cardPage.input}`}>
-        <div className={cardPage.prompt}>&gt; INPUT YOUR_THOUGHTS</div>
+        {/* INPUT is an instruction, and there is nothing to input on a day
+            that has already been written. A past log is just named. */}
+        <div className={cardPage.prompt}>&gt; {isToday ? 'INPUT YOUR_THOUGHTS' : 'YOUR_THOUGHTS'}</div>
         {isToday ? (
           <textarea
             aria-label="Write your reflection on today's card"
