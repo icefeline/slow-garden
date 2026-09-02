@@ -164,6 +164,45 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
    * at all.
    */
   const dragY = useRef(0);
+  /** Last touch position and time, for the flick speed measured on release. */
+  const lastY = useRef(0);
+  const lastMoveAt = useRef(0);
+  const velocity = useRef(0);
+  /**
+   * Whether the sheet is on its way out.
+   *
+   * Dismissal used to unmount the drawer the instant the threshold was crossed,
+   * so the sheet vanished from wherever the thumb left it and the year view was
+   * simply there. This carries it the rest of the way down first: the drag ends
+   * where the animation begins, and the reader watches the thing they were
+   * holding leave rather than blink out of existence.
+   */
+  const [closing, setClosing] = useState(false);
+  /**
+   * Whether the sheet has finished arriving.
+   *
+   * The entrance used to be a CSS class, `animate-slide-up`, declared with
+   * `forwards` — and an animation's fill value outranks an inline style. So the
+   * class pinned `transform` to translateY(0) for the whole life of the sheet
+   * and every transform the drag set was silently discarded. The gesture code
+   * was correct and the sheet simply could not move.
+   *
+   * One owner of `transform` now, which is React. The sheet mounts sitting a
+   * full height below its place and is released on the next frame, so the
+   * arrival animates for the same reason the exit does.
+   */
+  const [entered, setEntered] = useState(false);
+  const closeTimer = useRef<number | null>(null);
+
+  // Two frames, not one: the first commits the starting transform, the second
+  // changes it. Setting both in the same frame gives the browser one style to
+  // compute and nothing to animate between.
+  useEffect(() => {
+    if (!sheetEl) { setEntered(false); return; }
+    let second = 0;
+    const first = requestAnimationFrame(() => { second = requestAnimationFrame(() => setEntered(true)); });
+    return () => { cancelAnimationFrame(first); cancelAnimationFrame(second); };
+  }, [sheetEl]);
 
   // Ref to scroll mobile view to current month on mount
   const currentMonthRef = useRef<HTMLDivElement>(null);
@@ -276,6 +315,37 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
 
   const closeDrawer = () => setDrawerOpen(false);
 
+  /** How long the sheet takes to leave, and the easing it leaves on. */
+  const EXIT_MS = 260;
+  const EXIT_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+
+  /**
+   * Sends the sheet the rest of the way down, then unmounts it.
+   *
+   * Continues from wherever the drag ended rather than restarting, so a sheet
+   * already 200px down travels the remaining distance instead of jumping back
+   * and replaying. The timer is the completion signal rather than transitionend:
+   * a transition that never starts, because the sheet is already at the target,
+   * fires no event, and the drawer would stay open forever.
+   */
+  const dismissDrawer = () => {
+    const height = sheetEl?.getBoundingClientRect().height ?? window.innerHeight;
+    setClosing(true);
+    setDrawerTranslateY(height);
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => {
+      closeDrawer();
+      setClosing(false);
+      closeTimer.current = null;
+    }, EXIT_MS);
+  };
+
+  // A drawer unmounted mid-exit, by a route change or a re-render, must not
+  // leave its timer to fire into nothing.
+  useEffect(() => () => {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current);
+  }, []);
+
   /**
    * Pull-to-close, listening on the whole sheet rather than on the handle alone.
    *
@@ -304,23 +374,64 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
     };
 
     const onTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
+      const y = e.touches[0].clientY;
+      touchStartY.current = y;
+      lastY.current = y;
+      lastMoveAt.current = performance.now();
+      velocity.current = 0;
       draggingSheet.current = sheet.scrollTop <= 0;
       dragY.current = 0;
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (!draggingSheet.current) return;
-      const dy = e.touches[0].clientY - touchStartY.current;
-      if (dy <= 0) {
-        // Dragged back up past where it started — hand the gesture back to the
-        // scroller rather than pinning the sheet at zero for the rest of it.
-        draggingSheet.current = false;
-        setY(0);
-        return;
+      const y = e.touches[0].clientY;
+
+      // Speed of the last moment of the drag, in px per ms, positive downward.
+      // Kept per-move rather than measured across the whole gesture: what
+      // decides a flick is how fast the thumb was going when it left, not its
+      // average over a drag that may have paused halfway.
+      const now = performance.now();
+      const elapsed = now - lastMoveAt.current;
+      if (elapsed > 0) velocity.current = (y - lastY.current) / elapsed;
+      lastY.current = y;
+      lastMoveAt.current = now;
+
+      if (!draggingSheet.current) {
+        // The scroller has run out of content and the thumb is still coming
+        // down, so the sheet takes the gesture over without it being released.
+        //
+        // Deciding this once at touchstart is what made the drawer feel stuck:
+        // a sheet scrolled even slightly down treated the whole gesture as a
+        // scroll, so closing it took a drag to reach the top, a lift, and then
+        // a second drag. iOS hands over mid-gesture and so does this now.
+        //
+        // The origin is rebased to where the thumb is at handover rather than
+        // where the gesture began. Using the original start would jump the
+        // sheet down by everything already spent on scrolling.
+        if (sheet.scrollTop <= 0 && y > touchStartY.current) {
+          draggingSheet.current = true;
+          touchStartY.current = y;
+        } else {
+          return;
+        }
       }
+
+      const dy = y - touchStartY.current;
+
+      // Once the sheet has the gesture it keeps it until the thumb lifts, and
+      // follows in both directions: down away from rest, back up towards it.
+      //
+      // It used to give the gesture back to the scroller the moment dy went
+      // negative, snapping home. A thumb does not travel in one direction — it
+      // wobbles a pixel upward constantly — so a drag would cancel itself
+      // partway and have to be started again. That is the drawer "needing
+      // several drags", and it is what a native sheet never does.
+      //
+      // Clamped at zero so the sheet cannot be pulled above where it rests.
+      // Dragging up past that point simply holds it at rest rather than
+      // handing back mid-gesture; the scroller gets its turn on the next touch.
       e.preventDefault();
-      setY(dy);
+      setY(Math.max(0, dy));
     };
 
     const onTouchEnd = () => {
@@ -330,8 +441,16 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       // a plain value here so the decision to close is an ordinary side effect
       // rather than something smuggled into React's reducer.
       const dy = dragY.current;
+      const speed = velocity.current;
       dragY.current = 0;
-      if (dy > 80) closeDrawer();
+      velocity.current = 0;
+
+      // Distance or intent. 80px is the deliberate pull; the second clause is
+      // the flick — a short, fast push downward that every native sheet treats
+      // as a dismissal, and that felt ignored here because only distance
+      // counted. 0.5px/ms is about 500px a second, well above a drag that
+      // happens to end while still moving.
+      if (dy > 80 || (dy > 24 && speed > 0.5)) dismissDrawer();
       else setDrawerTranslateY(0);
     };
 
@@ -553,10 +672,21 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
       {drawerOpen && selectedDate && selectedCard && selectedEntry && (
         <>
           {/* Backdrop */}
+          {/* The scrim thins as the sheet is pulled down, so the gesture reads
+              as one movement rather than a panel sliding over a static wall.
+              Tied to the drag rather than to a class so it tracks the thumb. */}
           <div
             className="md:hidden fixed inset-0 bg-[#172211]/60 backdrop-blur-sm z-40"
-            onClick={closeDrawer}
+            onClick={dismissDrawer}
             aria-hidden="true"
+            style={{
+              opacity: closing ? 0 : Math.max(0, 1 - drawerTranslateY / 320),
+              transition: closing
+                ? `opacity ${EXIT_MS}ms ${EXIT_EASE}`
+                : drawerTranslateY === 0
+                ? 'opacity 0.3s ease'
+                : 'none',
+            }}
           />
           {/* Drawer panel */}
           <div
@@ -573,13 +703,22 @@ export default function YearView({ year, journalEntries, onDateClick, onNavigate
                No top border. A lime rule across the head of the sheet drew a
                line under nothing — the rounded corners and the ground change
                already say where the sheet starts. */
-            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto animate-slide-up"
+            className="md:hidden fixed bottom-0 left-0 right-0 bg-[#172211] rounded-t-3xl shadow-2xl z-50 max-h-[92dvh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label={`Card reading for ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`}
             style={{
-              transform: `translateY(${drawerTranslateY}px)`,
-              transition: drawerTranslateY === 0 ? 'transform 0.3s ease' : 'none',
+              transform: entered ? `translateY(${drawerTranslateY}px)` : 'translateY(100%)',
+              /* No transition while a thumb is on it — the sheet must sit exactly
+                 where the finger is. The settle back to rest and the exit both
+                 animate; the exit is the same curve iOS uses for sheets. */
+              transition: !entered
+                ? 'none'
+                : closing
+                ? `transform ${EXIT_MS}ms ${EXIT_EASE}`
+                : drawerTranslateY === 0
+                ? `transform 300ms ${EXIT_EASE}`
+                : 'none',
             }}
           >
             {/* Drag handle — touch target for swipe-to-close */}
