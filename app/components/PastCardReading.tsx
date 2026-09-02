@@ -2,7 +2,7 @@
 
 import { TarotCard as TarotCardType } from '@/lib/types/tarot';
 import TarotCard from './TarotCard';
-import { LABEL_TYPE } from './type';
+import { styles as cardPage } from './card-page';
 
 interface PastCardReadingProps {
   date: string;
@@ -59,25 +59,27 @@ export default function PastCardReading({ date, card, isReversed, surface }: Pas
           isRevealed={true}
           cardDate={date}
           surface={surface}
+          /*
+            The writing goes through the reading's own footer slot rather than
+            under it — SPEC §10, the same slot the main page hands its textarea
+            to. It used to be a block of its own below the card, which is why
+            it was the one lowercase caption in a column of machine labels and
+            why it sat at a different measure. In here it is a section of the
+            reading: the > prompt in the terminal face, at the page's measure,
+            beside MEANING and DISTILL.
+
+            INPUT is an instruction and there is nothing to type into on a day
+            already written, so a past log is named rather than asked for.
+          */
+          footer={reflection && reflection.trim() ? (
+            <section className={`${cardPage.col} ${cardPage.input}`}>
+              <div className={cardPage.prompt}>&gt; YOUR_THOUGHTS</div>
+              <div className={cardPage.entry}>{reflection}</div>
+            </section>
+          ) : undefined}
         />
       </div>
 
-      {reflection && reflection.trim() && (
-        <div className="mt-4 px-5">
-          <h3
-            className="mb-2"
-            style={{ ...LABEL_TYPE, color: 'var(--sky-ink, #C9F24E)', fontSize: 'clamp(9px, 2.2vw, 11px)' }}
-          >
-            reflection
-          </h3>
-          <div
-            className="leading-relaxed"
-            style={{ color: 'var(--sky-body, #F7F4E6)', fontFamily: 'var(--font-dm-sans), sans-serif', fontSize: 'clamp(14px, 3.4vw, 16px)' }}
-          >
-            {reflection}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
