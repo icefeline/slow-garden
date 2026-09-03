@@ -778,7 +778,11 @@ export default function Home() {
               className="text-[#F7F4E6]"
               style={{
                 fontSize: 'clamp(21px, 3.6vw, 29px)',
-                letterSpacing: '0.1em',
+                /* Tighter than the 0.1em it carried as DM Mono. That tracking
+                   was opening up a face that is already drawn on a wide grid,
+                   and the two spacings together read as letters standing near
+                   each other rather than as one word. */
+                letterSpacing: '0.04em',
                 textTransform: 'uppercase',
                 fontFamily: 'var(--font-vt323), monospace',
                 lineHeight: '1',
