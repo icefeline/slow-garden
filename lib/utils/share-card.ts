@@ -309,6 +309,61 @@ function wrap(
   return lines;
 }
 
+/**
+ * The same wrap, stopping at a sentence.
+ *
+ * A share card has a fixed panel and the passages do not, so a long one
+ * overran and was cut at whatever word happened to be sitting on the last
+ * line — mid-clause, sometimes mid-thought. That is fine for a paragraph the
+ * reader can scroll to finish, and wrong for an image that is the whole of
+ * what they get: the card leaves with them, and it should not leave holding
+ * half a sentence.
+ *
+ * So it keeps whole sentences, as many as fit, and marks the ones it dropped.
+ * If even the first sentence overruns there is nothing to fall back to, and
+ * the old word-cut is still better than an empty panel.
+ *
+ * Only the prose blocks use this. The card name and the short lines are cut by
+ * `wrap` as before — a title has no sentences to stop at.
+ */
+function wrapProse(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  maxLines: number
+): string[] {
+  const whole = wrap(ctx, text, maxWidth);
+  if (whole.length <= maxLines) return whole;
+
+  // Terminators are kept with the sentence they end, and any closing quote or
+  // bracket with them, so the elision lands outside the punctuation.
+  const sentences = text.match(/[^.!?]+[.!?]+["')\]]*\s*/g);
+  if (sentences) {
+    let kept = '';
+    for (const sentence of sentences) {
+      const candidate = kept + sentence;
+      if (wrap(ctx, elide(candidate), maxWidth).length > maxLines) break;
+      kept = candidate;
+    }
+    if (kept.trim()) return wrap(ctx, elide(kept), maxWidth);
+  }
+
+  // One sentence longer than the whole panel. Cut at a word, as before.
+  return wrap(ctx, text, maxWidth, maxLines);
+}
+
+/**
+ * Close a passage that continues elsewhere.
+ *
+ * A full stop is replaced rather than followed: the ellipsis is doing the same
+ * job the stop was, and "OUT.…" reads as a typo. A question or an exclamation
+ * keeps its mark, because dropping it would change what the sentence is.
+ */
+function elide(text: string): string {
+  const trimmed = text.trimEnd();
+  return trimmed.endsWith('.') ? `${trimmed.slice(0, -1)}…` : `${trimmed}…`;
+}
+
 /** Draw a run of text, returning the y the next block should start at. */
 function drawLines(
   ctx: CanvasRenderingContext2D,
@@ -1018,7 +1073,7 @@ async function drawPlate(
 
   ctx.font = `${p.bodySize}px ${bodyFamily}`;
   ctx.fillStyle = p.textInk;
-  const bodyLines = wrap(ctx, p.body(card, isReversed).toUpperCase(), measure, maxLines);
+  const bodyLines = wrapProse(ctx, p.body(card, isReversed).toUpperCase(), measure, maxLines);
   y = drawLines(ctx, bodyLines, left, y, leading);
 
   if (p.chips) {
