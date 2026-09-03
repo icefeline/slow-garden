@@ -764,11 +764,12 @@ export default function Home() {
               small caps, which is a perfectly good logo and belonged to a
               different app from the one around it.
 
-              Set in real capitals rather than small caps: VT323 has no small
-              cap forms, so the browser was manufacturing them by shrinking
-              capitals, and a pixel face survives that badly — the strokes stop
-              landing on the pixel grid the face is drawn to. Sized up to hold
-              the same optical weight, since VT323 runs small for its point size.
+              Lowercase, and drawn that way rather than transformed. It was
+              DM Mono in synthetic small caps — lowercase text the browser was
+              rendering as shrunken capitals — which a pixel face survives
+              badly, because the strokes stop landing on the grid it is drawn
+              to. The app's own tone rule is lowercase for labels and headings,
+              so the letters it was given are the letters it shows.
 
               The splash keeps its Instrument Serif wordmark. That one is the
               app introducing itself and is allowed its own voice; this one is a
@@ -783,7 +784,6 @@ export default function Home() {
                    and the two spacings together read as letters standing near
                    each other rather than as one word. */
                 letterSpacing: '0.04em',
-                textTransform: 'uppercase',
                 fontFamily: 'var(--font-vt323), monospace',
                 lineHeight: '1',
               }}
