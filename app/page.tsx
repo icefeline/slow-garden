@@ -755,9 +755,38 @@ export default function Home() {
                 maskPosition: 'center',
               }}
             />
+            {/*
+              The wordmark in the app's own machine voice.
+
+              Every other piece of chrome that names something is VT323 — the
+              year's header, the titlebar of a window a past card opens in, the
+              > prompts down the reading. The wordmark was DM Mono in synthetic
+              small caps, which is a perfectly good logo and belonged to a
+              different app from the one around it.
+
+              Lowercase, and drawn that way rather than transformed. It was
+              DM Mono in synthetic small caps — lowercase text the browser was
+              rendering as shrunken capitals — which a pixel face survives
+              badly, because the strokes stop landing on the grid it is drawn
+              to. The app's own tone rule is lowercase for labels and headings,
+              so the letters it was given are the letters it shows.
+
+              The splash keeps its Instrument Serif wordmark. That one is the
+              app introducing itself and is allowed its own voice; this one is a
+              label on a toolbar.
+            */}
             <span
               className="text-[#F7F4E6]"
-              style={{ fontSize: 'clamp(16px, 2.8vw, 22px)', letterSpacing: '0.1em', fontVariant: 'small-caps', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace', lineHeight: '1' }}
+              style={{
+                fontSize: 'clamp(21px, 3.6vw, 29px)',
+                /* Tighter than the 0.1em it carried as DM Mono. That tracking
+                   was opening up a face that is already drawn on a wide grid,
+                   and the two spacings together read as letters standing near
+                   each other rather than as one word. */
+                letterSpacing: '0.04em',
+                fontFamily: 'var(--font-vt323), monospace',
+                lineHeight: '1',
+              }}
             >
               slow garden
             </span>
