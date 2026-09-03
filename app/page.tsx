@@ -902,12 +902,31 @@ export default function Home() {
               It goes above the anchor, not inside: TearOffPage is absolute
               inset-0 within the anchor and centres itself there, so anything
               added inside would drag the calendar off the card.
+
+              The shell, and its width, are both load-bearing.
+
+              The reading measures itself against the shell — that element is
+              the query container — and the real one is a child of the page,
+              the full width of the window. This copy is inside the centred
+              max-w-4xl column, which is 832px on a desktop where the reading
+              gets 1397. Left alone it therefore asked a narrower container the
+              same question and got the phone's answer: a 52px name reserving
+              about 70px too little, a calendar sitting that much too high, and
+              the card dropping to its real place the instant it was torn —
+              exactly what this block exists to prevent.
+
+              So the shell here is pinned to the viewport, which is what the
+              real one resolves to. The overflow is hidden on the wrapper
+              because a 100vw child of a padded, centred column hangs off the
+              right of it; only the height of this thing is ever used.
             */}
             {!isRevealed && (
-              <div aria-hidden="true" className="pointer-events-none" style={{ visibility: 'hidden' }}>
-                <div className={cardPage.page}>
-                  <div className={cardPage.col}>
-                    <CardName name={card.name} />
+              <div aria-hidden="true" className="pointer-events-none overflow-hidden" style={{ visibility: 'hidden' }}>
+                <div className={cardPage.shell} style={{ width: '100vw' }}>
+                  <div className={cardPage.page}>
+                    <div className={cardPage.col}>
+                      <CardName name={card.name} />
+                    </div>
                   </div>
                 </div>
                 {/* the plate's own margin above the card */}
