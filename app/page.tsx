@@ -773,11 +773,7 @@ export default function Home() {
               }}
               aria-pressed={currentView === 'card'}
               aria-label="View today's card"
-              className={`px-3 md:px-5 py-1.5 md:py-2 rounded-full transition-all ${
-                currentView === 'card'
-                  ? 'bg-[#C9F24E] text-[#172211]'
-                  : 'bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60'
-              }`}
+              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2"
               style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
             >
               today
@@ -786,11 +782,7 @@ export default function Home() {
               onClick={() => setCurrentView('year')}
               aria-pressed={currentView === 'year'}
               aria-label="View year history"
-              className={`px-3 md:px-5 py-1.5 md:py-2 rounded-full transition-all ${
-                currentView === 'year'
-                  ? 'bg-[#C9F24E] text-[#172211]'
-                  : 'bg-[#172211] text-[#C9F24E] border border-[#C9F24E]/30 hover:border-[#C9F24E]/60'
-              }`}
+              className="sg-osbtn px-3 md:px-5 py-1.5 md:py-2"
               style={{ ...LABEL_TYPE, fontSize: 'clamp(9px, 2.2vw, 11px)', letterSpacing: '0.16em' }}
             >
               year

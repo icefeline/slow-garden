@@ -228,3 +228,72 @@ input.rounded-3xl:focus-within {
 @media (prefers-reduced-motion: reduce) {
   .sg-light { animation: none; }
 }
+
+/* ── the view switcher, built like a toolbar button ──────────────────────────
+   The year view already opens its past cards in windows with a 2px ink border
+   and a hard offset shadow, so the app is speaking that language somewhere. The
+   nav was the last round-cornered thing left in it.
+
+   A bevel is four borders lit from the top left: the two edges facing the light
+   take a highlight, the two facing away take a shadow, and pressing swaps them.
+   That is the whole trick, and it is why these read as pressed rather than
+   merely coloured in — the eye is reading the light, not the fill.
+
+   The palette does not change. Raised is the app's ground with a lime edge,
+   pressed is lime with a lime edge, and the highlight and shadow are the same
+   lime taken up and down rather than any new colour.
+
+   Keyed off aria-pressed, which the buttons already carry, so the look follows
+   the state a screen reader is given rather than a second class that could
+   disagree with it.
+   ────────────────────────────────────────────────────────────────────────── */
+.sg-osbtn {
+  border-radius: 0;
+  border-width: 2px;
+  border-style: solid;
+  /* top | right | bottom | left */
+  border-color: rgba(201, 242, 78, 0.5) #0b1108 #0b1108 rgba(201, 242, 78, 0.5);
+  background: #172211;
+  color: #c9f24e;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+  /* Colour only. The bevel and the 1px shift are the press, and a press that
+     eases is a press that feels late. */
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sg-osbtn:hover {
+  border-top-color: rgba(201, 242, 78, 0.8);
+  border-left-color: rgba(201, 242, 78, 0.8);
+}
+
+/* Held down, but not the current view — the button a finger is on reads as
+   pressed for as long as it is held, then springs back. */
+.sg-osbtn:active {
+  border-color: #0b1108 rgba(201, 242, 78, 0.5) rgba(201, 242, 78, 0.5) #0b1108;
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+/* The current view. Pressed and staying pressed: the light comes from the other
+   side, the shadow it was casting is gone, and it sits where a pressed key sits. */
+.sg-osbtn[aria-pressed='true'] {
+  background: #c9f24e;
+  color: #172211;
+  border-color: #7fa02f #e6fba8 #e6fba8 #7fa02f;
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+
+.sg-osbtn[aria-pressed='true']:hover {
+  border-top-color: #7fa02f;
+  border-left-color: #7fa02f;
+}
+
+.sg-osbtn:focus-visible {
+  outline: 2px dotted #c9f24e;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-osbtn { transition: none; }
+}
