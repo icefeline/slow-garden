@@ -755,9 +755,34 @@ export default function Home() {
                 maskPosition: 'center',
               }}
             />
+            {/*
+              The wordmark in the app's own machine voice.
+
+              Every other piece of chrome that names something is VT323 — the
+              year's header, the titlebar of a window a past card opens in, the
+              > prompts down the reading. The wordmark was DM Mono in synthetic
+              small caps, which is a perfectly good logo and belonged to a
+              different app from the one around it.
+
+              Set in real capitals rather than small caps: VT323 has no small
+              cap forms, so the browser was manufacturing them by shrinking
+              capitals, and a pixel face survives that badly — the strokes stop
+              landing on the pixel grid the face is drawn to. Sized up to hold
+              the same optical weight, since VT323 runs small for its point size.
+
+              The splash keeps its Instrument Serif wordmark. That one is the
+              app introducing itself and is allowed its own voice; this one is a
+              label on a toolbar.
+            */}
             <span
               className="text-[#F7F4E6]"
-              style={{ fontSize: 'clamp(16px, 2.8vw, 22px)', letterSpacing: '0.1em', fontVariant: 'small-caps', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace', lineHeight: '1' }}
+              style={{
+                fontSize: 'clamp(21px, 3.6vw, 29px)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-vt323), monospace',
+                lineHeight: '1',
+              }}
             >
               slow garden
             </span>
