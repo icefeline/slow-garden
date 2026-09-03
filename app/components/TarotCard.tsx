@@ -576,7 +576,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
           <div className={styles.spine} />
 
           <div className={styles.right}>
-            <Distill cardId={card.id} />
+            <Distill cardId={card.id} isReversed={isReversed} />
           </div>
         </div>
       </div>

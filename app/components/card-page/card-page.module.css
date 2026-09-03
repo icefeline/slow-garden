@@ -183,7 +183,11 @@
 
 .distill .memory {
   margin: 9px 0 20px;
-  font-size: 12.5px;
+  /* A point and a half above the description under MEANING, which sits at the
+     same 12.5px. Both are the quiet voice on the page, and at one size the
+     memory read as a second paragraph of the description rather than as the
+     card's own passage — the distinction the two blocks exist to make. */
+  font-size: 14px;
   line-height: 1.6;
   letter-spacing: -.008em;
   color: var(--paper-3);
@@ -483,7 +487,8 @@
   .meaning .sub { font-size: 16px; }
 
   .distill { margin-top: 0; padding-top: 0; border-top: 0; }
-  .distill .memory { font-size: 16px; }
+  /* Keeps the same point-and-a-half over .meaning .sub at 16px. */
+  .distill .memory { font-size: 17.5px; }
   .notes { font-size: 16px; line-height: 1.8; }
 
   /* The reference insets this to 792px; here it lines up with the measure so
