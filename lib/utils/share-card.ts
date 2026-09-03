@@ -16,7 +16,7 @@
  */
 
 import type { TarotCard } from '@/lib/types/tarot';
-import { cardScents, cardMemories } from '@/lib/data/card-scents';
+import { cardScents, cardMemories, cardMemoriesReversed } from '@/lib/data/card-scents';
 import { noteShares } from '@/lib/utils/card-readout';
 import { cardTraceSubjects } from '@/lib/data/card-trace-subjects';
 
@@ -69,6 +69,35 @@ async function fontsReady(): Promise<void> {
   }
 }
 
+/**
+ * The card's artwork, the way up it was drawn.
+ *
+ * A reversed card is the same picture turned 180°, which is what the reading
+ * page has always shown and what the reader saw when they pulled it. The share
+ * templates were loading the plain file and captioning it REVERSED, so the
+ * caption and the picture disagreed — the one thing a share card cannot do,
+ * since it travels without the app around it to explain itself.
+ *
+ * Rotated into a canvas rather than at each draw: the templates put this
+ * through `treated()` and `drawCover()`, which crop and filter it, and turning
+ * it at those call sites would mean rotating the crop as well. Every drawing
+ * surface downstream takes a canvas exactly where it took an image.
+ */
+async function loadArt(src: string, isReversed: boolean): Promise<HTMLImageElement | HTMLCanvasElement> {
+  const img = await loadImage(src);
+  if (!isReversed) return img;
+
+  const out = document.createElement('canvas');
+  out.width = img.naturalWidth || img.width;
+  out.height = img.naturalHeight || img.height;
+  const c = out.getContext('2d');
+  if (!c) return img;
+  c.translate(out.width / 2, out.height / 2);
+  c.rotate(Math.PI);
+  c.drawImage(img, -out.width / 2, -out.height / 2, out.width, out.height);
+  return out;
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -101,7 +130,7 @@ export interface Treatment {
 }
 
 function treated(
-  img: HTMLImageElement,
+  img: HTMLImageElement | HTMLCanvasElement,
   w: number,
   h: number,
   t: Treatment,
@@ -464,7 +493,7 @@ export async function drawStamp(
 
   const artYLocal = padTop + 180;
   try {
-    const art = await loadImage(cardImageSrc(card));
+    const art = await loadArt(cardImageSrc(card), isReversed);
     sctx.save();
     sctx.beginPath();
     sctx.rect(padX, artYLocal, artW, artH);
@@ -555,7 +584,7 @@ export async function drawStamp(
 /** `object-fit: cover`, which canvas has no equivalent for. */
 function drawCover(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
+  img: HTMLImageElement | HTMLCanvasElement,
   x: number,
   y: number,
   w: number,
@@ -649,7 +678,7 @@ export function scentRows(cardId: string): Array<{ note: string; share: number }
  */
 export async function drawPixelBleed(
   canvas: HTMLCanvasElement,
-  { card, date, drawnAt }: ShareContext
+  { card, isReversed, date, drawnAt }: ShareContext
 ): Promise<void> {
   await fontsReady();
   const { term, mono } = faces();
@@ -663,7 +692,7 @@ export async function drawPixelBleed(
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
   try {
-    const art = await loadImage(cardImageSrc(card));
+    const art = await loadArt(cardImageSrc(card), isReversed);
     /*
      * `image-rendering: pixelated`, which is not what I first took it for.
      *
@@ -789,7 +818,10 @@ interface PlatePalette {
   bodySize: number;
   leadIn: string;
   chips: boolean;
-  body: (card: TarotCard) => string;
+  /** The passage this plate carries. Takes the orientation, because the
+   *  memory has two versions and a share card travels without the app around
+   *  it to explain why the picture and the words disagree. */
+  body: (card: TarotCard, isReversed: boolean) => string;
 }
 
 const PLATE_DARK: PlatePalette = {
@@ -835,7 +867,10 @@ const PLATE_LIGHT: PlatePalette = {
   leadWeight: 400,
   leadIn: '#1C3D5C',
   chips: false,
-  body: (card) => cardMemories[card.id] ?? card.description,
+  body: (card, isReversed) =>
+    (isReversed ? cardMemoriesReversed[card.id] : undefined) ??
+    cardMemories[card.id] ??
+    card.description,
 };
 
 const SPLIT_Y = 1180;
@@ -859,7 +894,7 @@ async function drawPlate(
   ctx.fillRect(0, 0, CARD_W, SPLIT_Y);
 
   try {
-    const art = await loadImage(cardImageSrc(card));
+    const art = await loadArt(cardImageSrc(card), isReversed);
     const layer = document.createElement('canvas');
     layer.width = CARD_W;
     layer.height = SPLIT_Y;
@@ -983,7 +1018,7 @@ async function drawPlate(
 
   ctx.font = `${p.bodySize}px ${bodyFamily}`;
   ctx.fillStyle = p.textInk;
-  const bodyLines = wrap(ctx, p.body(card).toUpperCase(), measure, maxLines);
+  const bodyLines = wrap(ctx, p.body(card, isReversed).toUpperCase(), measure, maxLines);
   y = drawLines(ctx, bodyLines, left, y, leading);
 
   if (p.chips) {
@@ -1092,9 +1127,9 @@ export async function drawAsciiTrace(
   ctx.fillStyle = '#3a3fd6';
   ctx.fillRect(0, 0, CARD_W, CARD_H);
 
-  let art: HTMLImageElement | null = null;
+  let art: HTMLImageElement | HTMLCanvasElement | null = null;
   try {
-    art = await loadImage(cardImageSrc(card));
+    art = await loadArt(cardImageSrc(card), isReversed);
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
     ctx.drawImage(
@@ -1122,7 +1157,7 @@ export async function drawAsciiTrace(
    * one simply has no trace; nothing here fails or waits.
    */
   try {
-    const trace = await loadImage(`/trace/${card.id}.png`);
+    const trace = await loadArt(`/trace/${card.id}.png`, isReversed);
     ctx.drawImage(trace, -8, 6, CARD_W, CARD_H);
   } catch {
     // no trace drawn for this card yet

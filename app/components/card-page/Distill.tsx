@@ -1,5 +1,5 @@
 import styles from './card-page.module.css';
-import { cardMemories, cardScents } from '@/lib/data/card-scents';
+import { cardMemories, cardMemoriesReversed, cardScents } from '@/lib/data/card-scents';
 import { distillRows, dotLeader, slotIndex, widestNote } from '@/lib/utils/card-readout';
 
 /**
@@ -16,14 +16,20 @@ import { distillRows, dotLeader, slotIndex, widestNote } from '@/lib/utils/card-
  * block clips its own overflow already, so the layer can be dropped back in when
  * the drawings are complete without moving anything else.
  */
-export function Distill({ cardId }: { cardId: string }) {
+export function Distill({ cardId, isReversed = false }: { cardId: string; isReversed?: boolean }) {
   const scent = cardScents[cardId];
   if (!scent) return null;
 
   const rows = distillRows(scent);
   if (rows.length === 0) return null;
 
-  const memory = cardMemories[cardId];
+  /*
+    The notes are the card's, whichever way up it came. The memory is not: a
+    reversal is the same accord doing something else to you, so it gets its own
+    passage. Falls back to the upright one rather than showing nothing, so a
+    missing reversal reads as unwritten instead of as a blank block.
+  */
+  const memory = (isReversed ? cardMemoriesReversed[cardId] : undefined) ?? cardMemories[cardId];
   const names = rows.map(row => row.note.toUpperCase());
   const widest = widestNote(names);
 
