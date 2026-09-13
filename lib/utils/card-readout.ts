@@ -179,9 +179,8 @@ export function formatOrb(orb: number | null | undefined): string | null {
 /**
  * How many cards this reader has ever drawn.
  *
- * Counts the reflection/journal history rather than the reading-day quota keys:
- * quota counts only the days that spent a personalised reading, while a draw is
- * a draw whether or not it was read for.
+ * Counts the reflection/journal history: a draw is a draw whether or not its
+ * personalised reading was ever fetched.
  */
 export function lifetimeDraws(journalKeyPrefix = 'card-'): number {
   if (typeof window === 'undefined') return 0;

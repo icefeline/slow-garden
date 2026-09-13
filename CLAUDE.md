@@ -28,8 +28,8 @@ slow garden is a meditative daily tarot app for self-reflection. not prediction,
 - **@anthropic-ai/sdk** — insight generation via `claude-haiku-4-5-20251001`
 - **astronomy-engine** — natal chart + transit calculations (Vedic sidereal, Lahiri ayanamsa)
 - **@upstash/redis + @upstash/ratelimit** — per-IP abuse guards, set far above human
-  use to bound cost (see `middleware.ts`). the product's free quota is a separate,
-  client-side count of 7 reading-days in `TarotCard.tsx` — an IP is not a person.
+  use to bound cost (see `middleware.ts`). these are the only bound on spend: there
+  is no per-person quota, and readings are free and unlimited.
 - **@vercel/analytics** — usage analytics
 
 ---
@@ -132,9 +132,8 @@ public/
 
 ## localStorage schema
 
-all reader data lives in localStorage. the one exception is the supporter
-record written by `/api/bmc-webhook` (email + code, 90-day expiry), which
-exists only to get a supporter their unlock code.
+all reader data lives in localStorage, with no exceptions — nothing about a
+reader is stored on a server.
 
 the keys grew in two eras and were never unified, so there is no single prefix
 to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`.
@@ -148,9 +147,7 @@ to filter on — see the reset snippet in `.claude/skills/onboarding-preview.md`
 | `insight-[cardId]-[date]` | `GeneratedInsight` | cached insight per card per date |
 | `slow-garden-memory` | `{ readings, memoryNotes }` | last 30 readings + 10 memoryNotes for personalisation. was `slowHourMemory` before the rename; `TarotCard.tsx` still reads the old key as a fallback so existing readers keep their notes |
 | `slow-garden-personalise` | `'false'` when opted out | whether to call Claude at all |
-| `slow-garden-reading-days` | `string[]` | the days that spent free quota (7 max) |
 | `slow-garden-use-location`, `slow-garden-here` | — | location consent + resolved place |
-| `slow-garden-unlocked` | `string` | a verified supporter code; its presence lifts the quota |
 | `slow-garden-webview-noticed` | `'true'` | the in-app-browser notice has been dismissed |
 
 ---
@@ -199,7 +196,6 @@ these apply to AI prompts, UI copy, and any new card meanings:
 npm run dev       # dev server on :3000 (Turbopack)
 npm run build     # production build
 npm run lint      # ESLint
-npm run mint      # mint a supporter unlock code by hand
 npm run wiki      # regenerate the private card wiki into the Obsidian vault
 npm test          # BROKEN — jest is scripted but not installed (issue #8)
 npm run test:watch
@@ -216,8 +212,6 @@ work is tracked in GitHub issues and lands through pull requests — see
 SLOW_GARDEN_ANTHROPIC_KEY  # required — Claude insight generation
 UPSTASH_REDIS_REST_URL   # required — abuse guards
 UPSTASH_REDIS_REST_TOKEN # required — abuse guards
-SLOW_GARDEN_UNLOCK_SECRET # required — signs supporter unlock codes
-BMC_WEBHOOK_SECRET       # required — verifies Buy Me a Coffee webhooks
 ELEVENLABS_API_KEY       # planned — voice feature
 ```
 

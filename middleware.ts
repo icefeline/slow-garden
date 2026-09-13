@@ -51,10 +51,6 @@ const geocodeLimiter = redis
  * maybe twice if they fumble it. 20 an hour leaves room for fumbling and none
  * for a script.
  */
-const unlockLimiter = redis
-  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, '1 h'), prefix: 'sl:unlock', analytics: false })
-  : null;
-
 function getIp(request: NextRequest): string {
   // x-real-ip is set by Vercel's edge network and cannot be spoofed by clients
   return (
@@ -71,7 +67,6 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/calculate-transit') limiter = transitLimiter;
   else if (pathname === '/api/welcome-insight') limiter = welcomeLimiter;
   else if (pathname === '/api/geocode-check') limiter = geocodeLimiter;
-  else if (pathname === '/api/unlock') limiter = unlockLimiter;
 
   if (!limiter) return NextResponse.next();
 
@@ -124,8 +119,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // bmc-webhook is deliberately absent: it is called by Buy Me a Coffee, not
-  // by readers, its own HMAC signature is the gate, and rate limiting it by IP
-  // would risk dropping a genuine donation notification.
-  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check', '/api/unlock'],
+  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check'],
 };

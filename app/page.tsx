@@ -600,10 +600,8 @@ export default function Home() {
      *
      * "Today" is more than the card: the cached insight is keyed by card AND
      * date, so leaving it behind means the next draw can surface the previous
-     * card's reading against a new card. The draw timestamp and today's entry
-     * in the reading-day quota are the same kind of leftover — without them a
-     * reset day still shows the old "drawn at" and still counts against the
-     * seven free readings, which makes testing the quota impossible.
+     * card's reading against a new card. The draw timestamp is the same kind of
+     * leftover — without it a reset day still shows the old "drawn at".
      *
      * Memory notes survive on purpose. They are the app's accumulated sense of
      * a person across many days, not a property of today, and wiping them here
@@ -625,19 +623,6 @@ export default function Home() {
       if (key.startsWith('insight-') && key.endsWith(`-${today}`)) {
         localStorage.removeItem(key);
       }
-    }
-
-    // Give today's free reading back, so the quota can be exercised repeatedly.
-    try {
-      const days = JSON.parse(localStorage.getItem('slow-garden-reading-days') || '[]');
-      if (Array.isArray(days)) {
-        localStorage.setItem(
-          'slow-garden-reading-days',
-          JSON.stringify(days.filter((d: unknown) => d !== today))
-        );
-      }
-    } catch {
-      // malformed quota store — leave it; the full reset clears it outright
     }
 
     // Reset view — next loadTodaysCard will draw a fresh random card

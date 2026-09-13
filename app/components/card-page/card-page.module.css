@@ -590,35 +590,6 @@
 .shellWindow .done { color: var(--sky-ink); }
 
 
-/* --- supporter unlock -------------------------------------- */
-/* Sits under the coffee link on the quota wall. Typed into rather than
-   clicked, so it borrows the reading page's terminal voice: a prompt and a
-   rule, not a boxed form field the rest of the page has no vocabulary for. */
-.unlock {
-  border-top: 1px dotted var(--lime-rule);
-  margin: 14px calc(-1 * var(--mod-pad)) 0;
-  padding: 12px var(--mod-pad) 0;
-}
-
-.unlockRow { display: flex; align-items: baseline; gap: 8px; }
-
-.unlockInput {
-  flex: 1;
-  font-family: var(--f-term);
-  font-size: 16px;
-  color: var(--lime-ink);
-  background: none;
-  border: 0;
-  border-bottom: 1px dotted var(--lime-rule);
-  padding: 0 0 3px;
-  outline: none;
-  min-width: 0;
-}
-
-.unlockInput::placeholder { color: var(--lime-ink-soft); }
-
-.unlockNote { font-family: var(--f-term); font-size: 15px; color: var(--lime-ink-soft); margin-top: 8px; }
-
 /* --- share -------------------------------------------------------- */
 /* A selected row on a VCR menu, which is the language of the sheet it opens.
    It was a dotted prompt line before, on the argument that a filled control

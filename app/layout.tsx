@@ -124,9 +124,8 @@ export default function RootLayout({
           inferred from a page that has no text in it.
 
           Kept to things that are true and checkable: no ratings, no invented
-          counts. `isAccessibleForFree` is the honest shape of the free tier —
-          the app is free to use, and the supporter unlock removes a limit
-          rather than opening a paywalled product.
+          counts. `isAccessibleForFree` is simply true: there is no limit and
+          nothing to buy. Supporting the app is a gift, not a purchase.
         */}
         <script
           type="application/ld+json"

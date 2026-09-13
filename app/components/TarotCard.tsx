@@ -212,7 +212,6 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [insightError, setInsightError] = useState<'error' | null>(null);
-  const [isRateLimited, setIsRateLimited] = useState(false);
   const isFirstMount = useRef(true);
 
   // Slot reveal animation — slotDone flips true when reel finishes
@@ -230,30 +229,13 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
     const cached = loadCachedInsight(card.id, cardDate);
     setGeneratedInsight(cached);
     setInsightError(null);
-    setIsRateLimited(false);
   }, [card.id, cardDate]);
 
-  /*
-   * The free quota: 7 personalised readings per person.
-   *
-   * Seven rather than three because this is a daily app, and a wall on day
-   * three arrives before the habit that would make anyone want to pass it.
-   * A week is long enough to find out whether the thing is for you.
-   *
-   * Counted as distinct DAYS that consumed a reading, not as fetches — a retry
-   * after an error, or re-opening the same day, must not burn quota. A day is
-   * recorded only once its reading actually arrives.
-   *
-   * This is per-user and therefore client-side. It is bypassable by clearing
-   * storage; that is a deliberate trade, since the alternative (an IP limit)
-   * punishes everyone behind a shared network. Cost abuse is bounded by the
-   * abuse guards in middleware.ts instead.
-   */
   /**
    * Set during onboarding ("read my chart"). When off, no request is made at
-   * all — no Claude call, no quota spent — and the reader gets the card and its
-   * traditional meaning. Defaults to on so anyone who onboarded before this
-   * existed is unaffected.
+   * all — no Claude call — and the reader gets the card and its traditional
+   * meaning. Defaults to on so anyone who onboarded before this existed is
+   * unaffected.
    */
   const personalisationOn = (): boolean => {
     try {
@@ -263,68 +245,11 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
     }
   };
 
-  const FREE_READING_DAYS = 7;
-  const READING_DAYS_KEY = 'slow-garden-reading-days';
-
-  const getReadingDays = (): string[] => {
-    try {
-      const raw = localStorage.getItem(READING_DAYS_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  };
-
-  const recordReadingDay = (day: string) => {
-    try {
-      const days = getReadingDays();
-      if (days.includes(day)) return;
-      localStorage.setItem(READING_DAYS_KEY, JSON.stringify([...days, day]));
-    } catch {
-      // storage unavailable — the reading still shows, we just cannot count it
-    }
-  };
-
-  /**
-   * Set once a supporter code has been checked by /api/unlock. Holding it
-   * means the quota simply stops applying.
-   *
-   * The code was verified on the server — it cannot be invented — but this
-   * flag is only localStorage, so someone could set it by hand. That is the
-   * same door the quota already leaves open, and it stays open for the same
-   * reason: closing it means accounts.
-   */
-  const UNLOCK_KEY = 'slow-garden-unlocked';
-
-  const isUnlocked = (): boolean => {
-    try {
-      return Boolean(localStorage.getItem(UNLOCK_KEY));
-    } catch {
-      return false;
-    }
-  };
-
-  /** Days already paid for stay readable; only a NEW day can exhaust the quota. */
-  const hasQuotaFor = (day: string): boolean => {
-    if (isUnlocked()) return true;
-    const days = getReadingDays();
-    return days.includes(day) || days.length < FREE_READING_DAYS;
-  };
-
   const fetchInsight = async () => {
     // Opted out — the personalised layer is simply absent, not "loading".
     if (!personalisationOn()) return;
 
-    const readingDay = cardDate ?? todayKey();
-
-    if (!hasQuotaFor(readingDay)) {
-      setIsRateLimited(true);
-      return;
-    }
-
     setIsGenerating(true);
-    setIsRateLimited(false);
     try {
       const birthDateStr = localStorage.getItem('userBirthdate');
       const birthTime = localStorage.getItem('userBirthTime');
@@ -411,8 +336,6 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
 
         setGeneratedInsight(freshInsight);
         saveCachedInsight(card.id, freshInsight, cardDate);
-        // Only now — a failed or errored request must not cost the user a day.
-        recordReadingDay(readingDay);
 
         saveMemory(
           memory,
@@ -438,7 +361,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
 
   // Generate insight when card is revealed
   useEffect(() => {
-    if (!isRevealed || generatedInsight || insightError || isRateLimited) return;
+    if (!isRevealed || generatedInsight || insightError) return;
     if (!personalisationOn()) return;
     const timer = setTimeout(fetchInsight, 800);
     return () => clearTimeout(timer);
@@ -591,7 +514,6 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
           transitExplanation={generatedInsight?.transitExplanation}
           exact={generatedInsight?.readout?.exact}
           isLoading={isGenerating}
-          isRateLimited={isRateLimited}
           hasError={!!insightError}
           onRetry={() => setInsightError(null)}
         />
