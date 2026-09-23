@@ -43,6 +43,11 @@ const geocodeLimiter = redis
   ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(120, '1 h'), prefix: 'sl:geocode', analytics: false })
   : null;
 
+// Same shape as transitLimiter — one reading at a time, no daily quota above it.
+const dreamsLimiter = redis
+  ? new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, '1 h'), prefix: 'sl:dreams', analytics: false })
+  : null;
+
 function getIp(request: NextRequest): string {
   // x-real-ip is set by Vercel's edge network and cannot be spoofed by clients
   return (
@@ -59,6 +64,7 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/calculate-transit') limiter = transitLimiter;
   else if (pathname === '/api/welcome-insight') limiter = welcomeLimiter;
   else if (pathname === '/api/geocode-check') limiter = geocodeLimiter;
+  else if (pathname === '/api/dreams/interpret') limiter = dreamsLimiter;
 
   if (!limiter) return NextResponse.next();
 
@@ -111,5 +117,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check'],
+  matcher: ['/api/calculate-transit', '/api/welcome-insight', '/api/geocode-check', '/api/dreams/interpret'],
 };

@@ -1,0 +1,18 @@
+/*
+ * Scoped under .dreams-page so none of this leaks into the rest of the app.
+ * Everything else this route needs (background colour, layout, type) is
+ * already inline on the components; these three rules are the only things
+ * that can't be expressed as inline styles — pseudo-elements.
+ */
+.dreams-page ::selection {
+  background: #f3f35c;
+  color: #1438c4;
+}
+
+.dreams-page textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dreams-page input::placeholder {
+  color: rgba(243, 243, 92, 0.55);
+}

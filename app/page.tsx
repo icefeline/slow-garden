@@ -1038,6 +1038,14 @@ export default function Home() {
         </a>
         <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '12px' }}>·</span>
         <a
+          href="/dreams"
+          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity"
+          style={{ fontSize: '12px', letterSpacing: '0.14em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+        >
+          what does my dream mean?
+        </a>
+        <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '12px' }}>·</span>
+        <a
           href="https://buymeacoffee.com/shxntxnx"
           target="_blank"
           rel="noopener noreferrer"
