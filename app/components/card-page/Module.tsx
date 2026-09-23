@@ -23,88 +23,6 @@ import styles from './card-page.module.css';
  */
 const STAGE_MS = { thinking: 700, body: 900 } as const;
 
-/**
- * Where a supporter turns their code into an unlocked app.
- *
- * It lives under the coffee link rather than in settings because this is the
- * only moment anyone needs it: they have just been told the free readings ran
- * out, and the code is the answer to that sentence.
- *
- * The code is checked by the server — it cannot be invented — and on a yes the
- * page reloads so the reading it was blocking simply appears. No confirmation
- * screen: the unlocked reading is the confirmation.
- */
-function UnlockEntry() {
-  const [code, setCode] = useState('');
-  const [state, setState] = useState<'idle' | 'checking' | 'bad'>('idle');
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!code.trim() || state === 'checking') return;
-
-    setState('checking');
-    try {
-      const res = await fetch('/api/unlock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code.trim() }),
-      });
-      const { valid } = await res.json();
-
-      if (!valid) {
-        setState('bad');
-        return;
-      }
-
-      localStorage.setItem('slow-garden-unlocked', code.trim());
-      // Reload rather than lift state up through the card page: the quota is
-      // read at fetch time in TarotCard, and a reload is the honest way to
-      // re-ask every question that depended on it.
-      window.location.reload();
-    } catch {
-      // Offline or the endpoint is down. Not the reader's fault and not a
-      // wrong code, so it must not say the code was wrong.
-      setState('idle');
-    }
-  };
-
-  return (
-    <div className={styles.unlock}>
-      <form className={styles.unlockRow} onSubmit={submit}>
-        <span>&gt;</span>
-        <input
-          className={styles.unlockInput}
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value);
-            if (state === 'bad') setState('idle');
-          }}
-          placeholder="already supported? paste your code e.g. a1fd54w5"
-          aria-label="supporter code"
-          autoCapitalize="off"
-          autoCorrect="off"
-          spellCheck={false}
-        />
-        {code.trim() && (
-          <button type="submit" className={styles.moduleRetry}>
-            {state === 'checking' ? 'checking' : 'unlock'}
-          </button>
-        )}
-      </form>
-      {/* The example lives in the placeholder rather than on a line of its own:
-          the field is already under the coffee link, so where the code comes
-          from is answered by what it sits beneath. */}
-      {state === 'bad' && (
-        <p className={styles.unlockNote}>
-          that code didn&apos;t match. check it came from the email with your receipt.
-        </p>
-      )}
-    </div>
-  );
-}
-
-
-
 /** The glyphs an ephemeris uses, so the log line reads as a real transit line. */
 const ASPECT_GLYPH: Record<string, string> = {
   conjunction: '☌',
@@ -135,6 +53,8 @@ interface ModuleProps {
   isRateLimited?: boolean;
   hasError?: boolean;
   onRetry?: () => void;
+  /** The ask screen's second link — fetches today's reading right away, no code needed. */
+  onContinue?: () => void;
 }
 
 /**
@@ -161,6 +81,7 @@ export function Module({
   isRateLimited,
   hasError,
   onRetry,
+  onContinue,
 }: ModuleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -231,20 +152,37 @@ export function Module({
             if this has meant something to you, a small contribution goes directly toward
             keeping it running :-)
           </p>
-          {/* `explain`, not `try`: same spacing, no rule. The link is the
-              sentence above it carried to its conclusion, not a new section,
-              and a divider between them read as though it were. */}
-          <div className={styles.explain}>
+          {/* `explain`, not `try`: same spacing, no rule. Both links are the
+              sentence above them carried to its conclusion, not a new
+              section, so they share one line and one voice rather than
+              reading as two competing asks. */}
+          <div className={styles.explain} style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
             <a
               href="https://buymeacoffee.com/shxntxnx"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '4px' }}
+              className={styles.coffeeLink}
             >
-              <p>buy me a coffee →</p>
+              <p style={{ margin: 0 }}>buy me a coffee →</p>
             </a>
+            {onContinue && (
+              <button
+                type="button"
+                onClick={onContinue}
+                style={{
+                  color: 'inherit',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '4px',
+                  background: 'none',
+                  border: 0,
+                  padding: 0,
+                  cursor: 'pointer',
+                }}
+              >
+                <p style={{ margin: 0 }}>continue with reading →</p>
+              </button>
+            )}
           </div>
-          <UnlockEntry />
         </>
       ) : (
         <>

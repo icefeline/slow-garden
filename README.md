@@ -23,7 +23,6 @@ You draw once a day. You can write a reflection. At the end of the year, you hav
 - **drag to begin** — after the welcome message, you drag a card to start. a small ritual.
 - **scent** — every card carries a perfumer's three-tier accord: top, heart, base.
 - **share cards** — export a reading as a 1080×1920 story card in one of four treatments, from a share sheet styled after an old DVD menu.
-- **supporter unlock** — a gift on Buy Me a Coffee unlocks unlimited readings forever, with no account and no database.
 - **works on mobile and desktop** — fully responsive. desktop shows a device frame; mobile is full screen.
 
 ---
@@ -63,7 +62,6 @@ Open [http://localhost:3000](http://localhost:3000). Copy `.env.example` to `.en
 | `npm run dev` | dev server on :3000 |
 | `npm run build` | production build |
 | `npm run lint` | eslint |
-| `npm run mint` | mint a supporter unlock code by hand |
 | `npm run wiki` | regenerate the private card wiki into the Obsidian vault |
 | `npm test` | **currently broken** — jest is configured in `package.json` but not installed |
 
@@ -85,21 +83,17 @@ app/
     calculate-transit/    # astrological transit calculation
     welcome-insight/      # onboarding copy
     geocode-check/        # birth location lookup
-    unlock/               # supporter code verification
-    bmc-webhook/          # Buy Me a Coffee donation hook
   privacy/                # privacy policy
   page.tsx                # main app shell
 lib/
   data/                   # the deck and everything authored about it
   utils/
     share-card.ts         # canvas renderers for the four share templates
-    unlock.ts             # HMAC-signed supporter codes
     sentry-scrub.ts       # strips PII before anything leaves the device
     webview.ts            # in-app browser detection
   types/
 scripts/
   build-card-wiki.mts     # generates the private card wiki
-  mint-unlock.mts         # mints a supporter code
 public/
   cards/                  # card image assets
 ```

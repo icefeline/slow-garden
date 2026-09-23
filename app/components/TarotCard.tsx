@@ -234,20 +234,27 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
   }, [card.id, cardDate]);
 
   /*
-   * The free quota: 7 personalised readings per person.
+   * The free-reading ask: after 7 personalised readings, say thank you and
+   * ask for support — but never actually withhold a reading over it.
    *
    * Seven rather than three because this is a daily app, and a wall on day
    * three arrives before the habit that would make anyone want to pass it.
    * A week is long enough to find out whether the thing is for you.
+   *
+   * There is no active user count that makes a hard block worth the cost of
+   * getting it wrong for someone genuinely low on money. Cost is bounded by
+   * the abuse guards in middleware.ts and by a usage alert on the Anthropic
+   * console instead, so this only ever shows once: the first day past the
+   * seven — with a link straight through to today's reading — and never
+   * again after that.
    *
    * Counted as distinct DAYS that consumed a reading, not as fetches — a retry
    * after an error, or re-opening the same day, must not burn quota. A day is
    * recorded only once its reading actually arrives.
    *
    * This is per-user and therefore client-side. It is bypassable by clearing
-   * storage; that is a deliberate trade, since the alternative (an IP limit)
-   * punishes everyone behind a shared network. Cost abuse is bounded by the
-   * abuse guards in middleware.ts instead.
+   * storage; that has always been true and matters less now that nothing is
+   * actually being withheld.
    */
   /**
    * Set during onboarding ("read my chart"). When off, no request is made at
@@ -287,38 +294,23 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
   };
 
   /**
-   * Set once a supporter code has been checked by /api/unlock. Holding it
-   * means the quota simply stops applying.
-   *
-   * The code was verified on the server — it cannot be invented — but this
-   * flag is only localStorage, so someone could set it by hand. That is the
-   * same door the quota already leaves open, and it stays open for the same
-   * reason: closing it means accounts.
+   * Whether `day` is the very first day past the free seven — the one moment
+   * the thank-you-and-ask screen is shown. Every day before it reads normally;
+   * every day after it also reads normally, because by then the ask has
+   * already had its say.
    */
-  const UNLOCK_KEY = 'slow-garden-unlocked';
-
-  const isUnlocked = (): boolean => {
-    try {
-      return Boolean(localStorage.getItem(UNLOCK_KEY));
-    } catch {
-      return false;
-    }
-  };
-
-  /** Days already paid for stay readable; only a NEW day can exhaust the quota. */
-  const hasQuotaFor = (day: string): boolean => {
-    if (isUnlocked()) return true;
+  const isFirstDayPastQuota = (day: string): boolean => {
     const days = getReadingDays();
-    return days.includes(day) || days.length < FREE_READING_DAYS;
+    return !days.includes(day) && days.length === FREE_READING_DAYS;
   };
 
-  const fetchInsight = async () => {
+  const fetchInsight = async (skipQuotaAsk = false) => {
     // Opted out — the personalised layer is simply absent, not "loading".
     if (!personalisationOn()) return;
 
     const readingDay = cardDate ?? todayKey();
 
-    if (!hasQuotaFor(readingDay)) {
+    if (!skipQuotaAsk && isFirstDayPastQuota(readingDay)) {
       setIsRateLimited(true);
       return;
     }
@@ -434,6 +426,11 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
       } finally {
         setIsGenerating(false);
       }
+  };
+
+  /** The ask screen's second link — today's reading, right now, no code needed. */
+  const continuePastQuotaAsk = () => {
+    fetchInsight(true);
   };
 
   // Generate insight when card is revealed
@@ -594,6 +591,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
           isRateLimited={isRateLimited}
           hasError={!!insightError}
           onRetry={() => setInsightError(null)}
+          onContinue={continuePastQuotaAsk}
         />
       )}
 

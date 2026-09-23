@@ -212,43 +212,21 @@ export default function TermsAndPrivacy() {
           <Clause title="It may change, and it may stop">
             <p>
               slow garden is made by one person and given away. Features can change or
-              disappear, the app can be offline, and readings are limited so the costs stay
-              survivable. There&apos;s no guarantee it will keep working, and no promise it
-              will still be here next year &mdash; though the intention is that it will be.
+              disappear, and the app can be offline. There&apos;s no guarantee it will keep
+              working, and no promise it will still be here next year &mdash; though the
+              intention is that it will be.
             </p>
           </Clause>
 
           <Clause title="If you buy me a coffee">
-            <p className="mb-4">
-              The support link is a gift rather than a purchase, and it isn&apos;t
-              refundable. What it does do is lift the seven-reading limit, for good. That is
-              a thank-you, not a transaction: the readings you&apos;ve already had are yours
-              either way, and nothing about the app is held back from anyone who
-              doesn&apos;t.
-            </p>
-            <p className="mb-4">How the unlock works:</p>
-            <List spaced>
-              <li>
-                <Term>Buy Me a Coffee handles the payment.</Term> We never see your card.
-              </li>
-              <li>
-                <Term>Your code is worked out from your email address.</Term> It&apos;s a
-                signature we can check rather than a record we look up, so unlocking still
-                doesn&apos;t create an account. The code can&apos;t be turned back into your
-                address, so it gives away nothing about you if you lose or share it.
-              </li>
-              <li>
-                <Term>You paste it in once.</Term> That&apos;s the whole of it &mdash; no
-                subscription, nothing to cancel.
-              </li>
-              <li>
-                <Term>Your address and code are kept for 90 days,</Term> so we can send the
-                code and resend it if it goes astray. Then they&apos;re deleted.
-              </li>
-            </List>
             <p>
-              That 90-day record is the only thing in slow garden stored on a server rather
-              than on your device, and it exists solely to get you the thing you paid for.
+              The support link is a gift rather than a purchase, and it isn&apos;t
+              refundable. It doesn&apos;t unlock anything &mdash; every reading is free
+              either way, and nothing about the app is held back from anyone who
+              doesn&apos;t send one. Buy Me a Coffee handles the payment; we never see
+              your card, and nothing about it reaches slow garden&apos;s server at all
+              &mdash; not your email, not a receipt, nothing. It&apos;s a thank-you, not
+              a transaction.
             </p>
           </Clause>
 
@@ -405,9 +383,6 @@ export default function TermsAndPrivacy() {
                 <Term>Readings and rate limits</Term> &mdash; readings aren&apos;t stored at
                 all, and the limiter&apos;s counters expire within the hour.
               </li>
-              <li>
-                <Term>Supporter codes</Term> &mdash; 90 days, then deleted.
-              </li>
             </List>
           </Clause>
 
@@ -432,8 +407,7 @@ export default function TermsAndPrivacy() {
               In practice all of those requests have the same short answer: we hold nothing
               about you to hand over, correct, or erase. What exists is in your browser,
               where you can read it, change it, or clear it whenever you like, without asking
-              anyone. The one exception is a supporter code, which you can ask us to delete
-              at any time.
+              anyone.
             </p>
           </Clause>
 

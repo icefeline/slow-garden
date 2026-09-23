@@ -111,7 +111,4 @@ generated pages link out to.
 
 ## Secrets
 
-- `SLOW_GARDEN_UNLOCK_SECRET` must never change. Rotating it invalidates every
-  supporter code ever issued, and there's no database to reissue them from.
-- `BMC_WEBHOOK_SECRET` must match the value from Buy Me a Coffee.
-- Nothing goes in `.env.local` that isn't also described in `.env.example`.
+Nothing goes in `.env.local` that isn't also described in `.env.example`.
