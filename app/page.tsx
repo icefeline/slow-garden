@@ -1028,29 +1028,29 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <div className="mt-auto text-center py-6 flex items-center justify-center gap-5">
+      <div className="mt-auto text-center py-6 flex items-center justify-center flex-nowrap gap-3 px-4">
         <a
           href="/privacy"
-          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity"
-          style={{ fontSize: '12px', letterSpacing: '0.14em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity whitespace-nowrap"
+          style={{ fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}
         >
-          terms & privacy
+          terms
         </a>
-        <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '12px' }}>·</span>
+        <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '13px', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}>·</span>
         <a
           href="/dreams"
-          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity"
-          style={{ fontSize: '12px', letterSpacing: '0.14em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity whitespace-nowrap"
+          style={{ fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}
         >
-          what does my dream mean?
+          dreams?
         </a>
-        <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '12px' }}>·</span>
+        <span className="text-[#F7F4E6] opacity-30" style={{ fontSize: '13px', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}>·</span>
         <a
           href="https://buymeacoffee.com/shxntxnx"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity"
-          style={{ fontSize: '12px', letterSpacing: '0.14em', fontFamily: 'var(--font-dm-mono), ui-monospace, monospace' }}
+          className="text-[#F7F4E6] opacity-30 hover:opacity-60 transition-opacity whitespace-nowrap"
+          style={{ fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-vt323), ui-monospace, monospace' }}
         >
           buy me a coffee
         </a>
