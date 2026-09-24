@@ -253,7 +253,7 @@ export default function DreamInterpreter() {
         </div>
 
         {onRead && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 72 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(32px, 9vw, 72px)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 56 }}>
               <div
                 style={{
@@ -375,7 +375,7 @@ export default function DreamInterpreter() {
                         gap: '8px 32px',
                         alignItems: 'center',
                         padding: '16px 0',
-                        borderTop: '1px solid rgba(255,255,255,0.35)',
+                        borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.35)',
                       }}
                     >
                       <div
@@ -482,7 +482,7 @@ export default function DreamInterpreter() {
               />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {filtered.map((entry) => (
+              {filtered.map((entry, i) => (
                 <div
                   key={entry.name}
                   style={{
@@ -491,7 +491,7 @@ export default function DreamInterpreter() {
                     gap: '6px 32px',
                     alignItems: 'center',
                     padding: '14px 0',
-                    borderTop: '1px solid rgba(255,255,255,0.35)',
+                    borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.35)',
                   }}
                 >
                   <div
@@ -516,11 +516,13 @@ export default function DreamInterpreter() {
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, paddingTop: 24 }}>
-          <div onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
-            {onRead ? 'index →' : 'interpret →'}
+        {(!onRead || !!reading) && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, paddingTop: 24 }}>
+            <div onClick={toggleView} style={{ cursor: 'pointer', fontSize: 14, marginLeft: 'auto' }}>
+              {onRead ? 'index →' : 'interpret →'}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <style jsx global>{`
