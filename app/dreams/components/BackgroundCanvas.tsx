@@ -496,14 +496,39 @@ export default function BackgroundCanvas({
         tilt.y += (tilt.dy - tilt.y) * 0.06;
         const mag = Math.hypot(tilt.x, tilt.y);
         if (!reduce) drift += (0.3 + mag * 3) * dt * curSpeed;
+        // "Down" defaults to straight toward the bottom of the screen — a
+        // level phone, or an idle cursor, settles the pile exactly where
+        // real sand would come to rest, not spread across the whole field.
         const gx = mag > 0.01 ? tilt.x / mag : 0;
         const gy = mag > 0.01 ? tilt.y / mag : 1;
+
+        // A fixed quantity of sand, not a field covering the whole screen:
+        // find how far the downhill corner is from the uphill one along the
+        // gravity axis, then only fill the bottom slice of that range.
+        let minDepth = Infinity;
+        let maxDepth = -Infinity;
+        for (const [cx0, cy0] of [
+          [0, 0],
+          [w, 0],
+          [0, h],
+          [w, h],
+        ] as [number, number][]) {
+          const d = cx0 * gx + cy0 * gy;
+          if (d < minDepth) minDepth = d;
+          if (d > maxDepth) maxDepth = d;
+        }
+        const range = maxDepth - minDepth || 1;
+        const fillFraction = 0.16 + curAmount * 0.34;
+        const surface = maxDepth - fillFraction * range;
+        const edgeBand = range * 0.1;
+
         field((x, y) => {
-          const proj = (tilt.x * (x - cx)) / (w * 0.5) + (tilt.y * (y - h / 2)) / (h * 0.5);
-          const along = (x * gx + y * gy) * 0.045;
-          const across = (x * -gy + y * gx) * 0.012;
-          const rip = Math.sin(along - drift * 2 + Math.sin(across + t * 0.3) * 1.5);
-          return (0.32 + proj * 0.75 + rip * 0.14) * (0.5 + curAmount) - 0.05;
+          const depth = x * gx + y * gy;
+          // A slow ripple along the surface so the pile settles with a bit
+          // of texture, not a razor-flat line.
+          const along = (x * -gy + y * gx) * 0.02;
+          const wobble = Math.sin(along + drift * 0.6) * edgeBand * 0.6;
+          return (depth + wobble - surface) / edgeBand;
         });
       } else if (mode === 'scroll smear') {
         const ny = window.scrollY;
