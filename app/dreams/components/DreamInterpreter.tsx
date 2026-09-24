@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type CSSProperties, type KeyboardEvent } from 'react';
-import BackgroundCanvas from './BackgroundCanvas';
+import BackgroundCanvas, { BG_STYLES, type BgStyle } from './BackgroundCanvas';
 
 /**
  * Ported from the Claude Design canvas `Dream Interpreter v3.dc.html`.
@@ -103,6 +103,39 @@ function noiseBg(baseFrequency: number, alpha: number): string {
   return `url("data:image/svg+xml,${svg.replace(/#/g, '%23')}")`;
 }
 
+/** 12x10 bitmaps for the two bottom-right buttons, one per background style plus play/pause. */
+const ICONS: Record<string, string[]> = {
+  'marble drift': ['............', '.#.#.#......', '......#.#...', '..........#.', '...#.#.....#', '.#.....#...#', '#.......#.#.', '#...#...#...', '.#.#.#.#....', '............'],
+  'sleep tide': ['............', '..##....##..', '.#..#..#..#.', '#....##....#', '............', '..##....##..', '.#..#..#..#.', '#....##....#', '............'],
+  constellations: ['.....#......', '.....#......', '...#####....', '.....#......', '.....#...#..', '........###.', '..#......#..', '............', '......#.....', '.#..........'],
+  'ink memory': ['.....##.....', '....####....', '....####....', '...######...', '..########..', '..###.####..', '..##.#####..', '..########..', '...######...', '....####....'],
+  'sleep stages': ['...####.....', '.####.......', '.###........', '###.........', '###.........', '###.........', '###.........', '.###........', '.####....#..', '...######...'],
+  play: ['...#........', '...##.......', '...###......', '...####.....', '...#####....', '...#####....', '...####.....', '...###......', '...##.......', '...#........'],
+  'tilt sand': ['............', '...........#', '..........##', '.........###', '........####', '.......#####', '......######', '....########', '..##########', '############'],
+  'scroll smear': ['#..#..#..#..', '#..#..#..#..', '#..#..#..#..', '#.....#.....', '#..#..#..#..', '...#.....#..', '#..#..#..#..', '#..#..#..#..', '#..#..#..#..'],
+  'hold to remember': ['............', '..#......#..', '...#....#...', '............', '.....##.....', '#...####...#', '.....##.....', '............', '...#....#...', '..#......#..'],
+  pause: ['..###..###..', '..###..###..', '..###..###..', '..###..###..', '..###..###..', '..###..###..', '..###..###..', '..###..###..', '..###..###..'],
+};
+
+const STYLE_FILL: Record<BgStyle, string> = {
+  'marble drift': '#1438C4',
+  'sleep tide': '#0A7E9C',
+  constellations: '#0E0E0E',
+  'ink memory': '#1438C4',
+  'sleep stages': '#8A7A00',
+  'tilt sand': '#8A7A00',
+  'scroll smear': '#1438C4',
+  'hold to remember': '#0E0E0E',
+};
+
+/** Turns a bitmap of "#"/"." rows into an SVG path of 1x1 unit squares, vertically centred in a 12-row grid. */
+function iconPath(rows: string[]): string {
+  const off = Math.floor((12 - rows.length) / 2);
+  return rows
+    .map((row, y) => [...row].map((c, x) => (c === '#' ? `M${x} ${y + off}h1v1h-1z` : '')).join(''))
+    .join('');
+}
+
 /**
  * Stands in for the canvas's `<image-slot>` element. Renders the real photo
  * once one exists at `src`; until then, the same dashed placeholder the
@@ -153,6 +186,8 @@ export default function DreamInterpreter() {
   const [symbols, setSymbols] = useState<Symbol[]>([]);
   const [actions, setActions] = useState<Action[]>([]);
   const [error, setError] = useState('');
+  const [bgStyle, setBgStyle] = useState<BgStyle>('marble drift');
+  const [motionOn, setMotionOn] = useState(true);
 
   const onRead = view === 'read';
   const q = query.trim().toLowerCase();
@@ -210,6 +245,22 @@ export default function DreamInterpreter() {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit();
   }
 
+  function nextStyle() {
+    setBgStyle(BG_STYLES[(BG_STYLES.indexOf(bgStyle) + 1) % BG_STYLES.length]);
+    setMotionOn(true);
+  }
+
+  function toggleMotion() {
+    setMotionOn((on) => !on);
+  }
+
+  const motionIconPath = iconPath(motionOn ? ICONS.pause : ICONS.play);
+  const motionPressedBg = motionOn ? '#D4D0C8' : 'repeating-conic-gradient(#FFFFFF 0 25%, #D4D0C8 0 50%)';
+  const styleIconPath = iconPath(ICONS[bgStyle]);
+  const styleFillColor = STYLE_FILL[bgStyle];
+  const motionLabel = motionOn ? 'Pause background motion' : 'Play background motion';
+  const styleLabel = `Background: ${bgStyle}, click for next`;
+
   return (
     <div
       style={{
@@ -222,7 +273,7 @@ export default function DreamInterpreter() {
         overflowX: 'hidden',
       }}
     >
-      <BackgroundCanvas />
+      <BackgroundCanvas motion={motionOn} bgStyle={bgStyle} />
       <div
         style={{
           position: 'relative',
@@ -523,6 +574,34 @@ export default function DreamInterpreter() {
             </div>
           </div>
         )}
+      </div>
+
+      <div style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 5, display: 'flex', flexDirection: 'column', background: '#0A0A0A', gap: 1, padding: '0 1px 1px 0' }}>
+        <button
+          type="button"
+          onClick={nextStyle}
+          title={styleLabel}
+          aria-label={styleLabel}
+          className="win98-btn"
+          style={{ background: '#D4D0C8' }}
+        >
+          <svg width={24} height={24} viewBox="0 0 12 12" shapeRendering="crispEdges" style={{ display: 'block' }}>
+            <path d={styleIconPath} fill={styleFillColor} />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={toggleMotion}
+          title={motionLabel}
+          aria-label={motionLabel}
+          aria-pressed={!motionOn}
+          className="win98-btn"
+          style={{ background: motionPressedBg }}
+        >
+          <svg width={24} height={24} viewBox="0 0 12 12" shapeRendering="crispEdges" style={{ display: 'block' }}>
+            <path d={motionIconPath} fill="#0E0E0E" />
+          </svg>
+        </button>
       </div>
 
       <style jsx global>{`

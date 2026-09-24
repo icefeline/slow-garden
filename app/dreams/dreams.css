@@ -1,8 +1,8 @@
 /*
  * Scoped under .dreams-page so none of this leaks into the rest of the app.
  * Everything else this route needs (background colour, layout, type) is
- * already inline on the components; these three rules are the only things
- * that can't be expressed as inline styles — pseudo-elements.
+ * already inline on the components; these rules are the things that can't
+ * be expressed as inline styles — pseudo-elements and pseudo-classes.
  */
 .dreams-page ::selection {
   background: #f3f35c;
@@ -15,4 +15,34 @@
 
 .dreams-page input::placeholder {
   color: rgba(243, 243, 92, 0.55);
+}
+
+/*
+ * The two bottom-right controls' Win98 bevel. Border colour is the only part
+ * that changes on press — an inline style would always win over a stylesheet
+ * :active rule, so the bevel lives here and only the background (which does
+ * vary by JS state, not by interaction) stays inline on the button.
+ */
+.dreams-page .win98-btn {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  border-radius: 0;
+  box-shadow: 1px 1px 0 #0a0a0a, inset -1px -1px 0 #a9a69d;
+  background-size: 2px 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dreams-page .win98-btn:active {
+  border-top: 2px solid #0a0a0a;
+  border-left: 2px solid #0a0a0a;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
