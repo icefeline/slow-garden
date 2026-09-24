@@ -246,8 +246,23 @@ export default function DreamInterpreter() {
   }
 
   function nextStyle() {
-    setBgStyle(BG_STYLES[(BG_STYLES.indexOf(bgStyle) + 1) % BG_STYLES.length]);
+    const next = BG_STYLES[(BG_STYLES.indexOf(bgStyle) + 1) % BG_STYLES.length];
+    setBgStyle(next);
     setMotionOn(true);
+
+    // iOS only fires deviceorientation after an explicit grant, and that grant
+    // only counts coming from a direct tap — not a tap relayed through state a
+    // moment later. This button press is the one guaranteed real gesture we
+    // have, so the ask has to happen right here, synchronously, not wherever
+    // the reader next happens to touch the page.
+    if (next === 'tilt sand') {
+      const requestPermission = (
+        window.DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }
+      )?.requestPermission;
+      if (typeof requestPermission === 'function') {
+        requestPermission().catch(() => {});
+      }
+    }
   }
 
   function toggleMotion() {
