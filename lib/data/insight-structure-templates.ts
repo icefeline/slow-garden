@@ -60,7 +60,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Safety isn\'t coming. The plan won\'t get clearer. {house_theme} is where {transiting_planet} and your {natal_planet} meet at the cliff edge',
       'Start before you\'re ready or don\'t start. {transiting_planet} hitting your {natal_planet} around {house_theme} is the nudge off the edge'
     ],
-    action: 'do the thing you\'ve been postponing until you feel ready'
+    action: 'pick the two-minute version of the thing you keep waiting to feel ready for. do that much today, nothing more'
   },
 
   'major-1': {
@@ -69,7 +69,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'That missing piece you keep searching for in {house_theme}? It\'s not missing. {transiting_planet} and your {natal_planet} already gave you everything you need',
       'You keep asking for permission. {transiting_planet} hitting your {natal_planet} around {house_theme} - you\'re already authorized'
     ],
-    action: 'list what you already have - tools, skills, connections - and use one today'
+    action: 'write down three tools, skills or people you already have access to. pick one and use it before the day ends'
   },
 
   'major-2': {
@@ -78,7 +78,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You already sense it. {transiting_planet} meeting your {natal_planet} in {house_theme} - trust the knowing that came before the thinking',
       'Something beneath {house_theme} is moving. {transiting_planet} lighting up your {natal_planet} - stop asking people who weren\'t in the room'
     ],
-    action: 'sit quietly for ten minutes. no phone. notice what surfaces without prompting'
+    action: 'set a timer for ten minutes. put the phone in another room. sit still and let whatever comes up come up, don\'t reach for it'
   },
 
   'major-3': {
@@ -87,7 +87,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Stop straining. {transiting_planet} nurturing your {natal_planet} around {house_theme} - things that need to grow won\'t be rushed',
       'What wants to be born in {house_theme} is already in motion. {transiting_planet} meeting your {natal_planet} - your job is to not strangle it'
     ],
-    action: 'do something that genuinely nourishes you. not productive. nourishing'
+    action: 'pick one thing today that only nourishes you, food, rest, touch, a walk. do it slowly enough to actually notice it happening'
   },
 
   'major-4': {
@@ -96,7 +96,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The drift in {house_theme} isn\'t circumstance. {transiting_planet} activating your {natal_planet} - someone decided not to decide, and it\'s been costing you',
       'You\'ve been waiting for permission in {house_theme}. {transiting_planet} meeting your {natal_planet} - it\'s not coming from anywhere external'
     ],
-    action: 'name one area needing more structure. make one rule about it today'
+    action: 'pick one part of your day that keeps sliding. write one if-then rule for it: "if it\'s 9am, then i do x." use it today'
   },
 
   'major-5': {
@@ -105,7 +105,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Not every tradition earns its place. {transiting_planet} activating your {natal_planet} in {house_theme} - wisdom and habit aren\'t the same thing',
       'Somewhere in {house_theme} you\'re doing things the way they\'re "supposed to be done" without knowing why. {transiting_planet} hitting your {natal_planet} - worth examining'
     ],
-    action: 'question one thing you do automatically. ask where that rule actually came from'
+    action: 'pick one habit you follow without thinking. write down who taught you to do it that way, and whether you\'d still choose it now'
   },
 
   'major-6': {
@@ -114,7 +114,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What you actually want versus what you should want. {transiting_planet} hitting your {natal_planet} in {house_theme} - stop pretending those are the same thing',
       'Which path is actually yours? {transiting_planet} working your {natal_planet} around {house_theme} makes it unavoidable'
     ],
-    action: 'write down the choice you\'ve been avoiding. be honest about which one you actually want'
+    action: 'write the choice you\'ve been avoiding as two columns, what you want and what you think you should want. circle the one that\'s actually true'
   },
 
   'major-7': {
@@ -123,7 +123,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You\'re waiting for the internal conflict around {house_theme} to resolve before you act. {transiting_planet} on your {natal_planet} says: move while it\'s unresolved',
       'The tension in {house_theme} under {transiting_planet} isn\'t a sign to wait. It\'s the condition you\'re working in. Navigate anyway'
     ],
-    action: 'commit to one direction today. you can adjust as you go'
+    action: 'pick one direction and set a start time for it today. the adjusting happens after you\'ve moved, not before'
   },
 
   'major-8': {
@@ -132,7 +132,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The resistance in {house_theme} intensifies when you push. {transiting_planet} on your {natal_planet} - notice what changes when you stop trying to overpower it',
       'You\'ve been treating {house_theme} like something to conquer. {transiting_planet} meeting your {natal_planet} - the thing you\'re fighting has been waiting for you to get quiet'
     ],
-    action: 'notice where you\'re using force. try patience instead, just once'
+    action: 'next time you catch yourself pushing, stop and do one long exhale through the mouth, twice as long as the breath in. then try again, slower'
   },
 
   'major-9': {
@@ -141,7 +141,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You\'re not depressed, you\'re recalibrating. {transiting_planet} working your {natal_planet} around {house_theme} needs the door closed and the lights off',
       'The answer lives inside and you can\'t hear it while performing. {transiting_planet} hitting your {natal_planet} in {house_theme} - what do you actually think?'
     ],
-    action: 'spend time alone today without filling it. no podcast, no scroll. just you'
+    action: 'put your phone in another room for twenty minutes. no podcast, no scroll, no background noise. just sit. that\'s the whole task'
   },
 
   'major-10': {
@@ -150,7 +150,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The shift in {house_theme} was in motion long before today. {transiting_planet} on your {natal_planet} is just the point where it becomes undeniable',
       'You\'ve been trying to predict {house_theme}. {transiting_planet} meeting your {natal_planet} says this turn wasn\'t in your model - which means your model needs updating'
     ],
-    action: 'let go of one thing you\'ve been trying to control. practice adapting instead'
+    action: 'pick one thing you\'ve been trying to control today and deliberately don\'t manage it. notice what happens when you leave it alone'
   },
 
   'major-11': {
@@ -159,7 +159,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What you owe and what\'s owed to you. {transiting_planet} hitting your {natal_planet} in {house_theme} - no excuses, just what\'s actually true',
       'The consequence in {house_theme} is fair, even if uncomfortable. {transiting_planet} activating your {natal_planet} - Justice doesn\'t apologize'
     ],
-    action: 'name one area where you haven\'t been fair - to yourself or someone else'
+    action: 'write one sentence naming where you haven\'t been fair, to yourself or someone else. then write the fair version underneath it'
   },
 
   'major-12': {
@@ -168,7 +168,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What if you saw {house_theme} from the other angle? {transiting_planet} working your {natal_planet} - the suspension is the lesson, not the obstacle to it',
       'You\'re not stuck, you\'re paused for a reason. {transiting_planet} meeting your {natal_planet} around {house_theme} - something shifts when you stop forcing your way out'
     ],
-    action: 'pause on the thing you\'ve been forcing. sit with not knowing for one day'
+    action: 'stop working the thing you\'ve been forcing for the rest of today. set a specific time tomorrow to come back to it, and mean it'
   },
 
   'major-13': {
@@ -177,7 +177,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever {transiting_planet} has been dismantling around your {natal_planet} in {house_theme} - you\'ve been feeling it coming. The card confirms it\'s not in your head',
       'The loss in {house_theme} and {transiting_planet} on your {natal_planet} arriving at the same time isn\'t coincidence. This was always the mechanism. Now you work with what\'s cleared'
     ],
-    action: 'name what you need to stop holding onto. say it out loud, even if nobody hears'
+    action: 'say out loud, alone, the thing you need to stop holding onto. one sentence, said clearly, not just thought'
   },
 
   'major-14': {
@@ -186,7 +186,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Not one extreme or the other. {transiting_planet} activating your {natal_planet} around {house_theme} - the middle path holds both truths without collapsing',
       'Patience is doing the work. {transiting_planet} meeting your {natal_planet} in {house_theme} - the alchemy takes the time it takes'
     ],
-    action: 'find the middle position between two things you\'ve been treating as opposites'
+    action: 'write the two extremes you\'ve been choosing between. then write one sentence that holds both partly true'
   },
 
   'major-15': {
@@ -195,7 +195,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What are you getting from staying stuck in {house_theme}? {transiting_planet} revealing this through your {natal_planet} - there\'s always a payoff for staying',
       'The door in {house_theme} was never locked. {transiting_planet} meeting your {natal_planet} - the Devil doesn\'t trap, it tempts. You\'re here because some part of you chose it'
     ],
-    action: 'ask honestly: what am i getting from this situation i claim i want to leave?'
+    action: 'write down what you\'re getting from the thing you say you want to leave. be specific. name the actual payoff, not the excuse'
   },
 
   'major-16': {
@@ -204,7 +204,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever collapsed - it couldn\'t hold. {transiting_planet} meeting your {natal_planet} in {house_theme} - the Tower doesn\'t renovate, it levels',
       'That 2am realization it was never going to work? {transiting_planet} on your {natal_planet} around {house_theme} - you knew. The Tower just made you stop pretending'
     ],
-    action: 'stop rebuilding what just fell. sit in the rubble before you pick up the bricks'
+    action: 'before you start rebuilding, shake it out. actual full-body shaking, arms and legs, for two minutes. don\'t think about it, just do it. pick up a brick after, not before'
   },
 
   'major-17': {
@@ -213,7 +213,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'This isn\'t naive optimism. {transiting_planet} helping your {natal_planet} rebuild trust around {house_theme} - the Star knows what was lost and hopes anyway, with eyes open',
       'Healing in {house_theme} looks like this: quiet, slow, undramatic. {transiting_planet} meeting your {natal_planet} - the Star doesn\'t announce itself'
     ],
-    action: 'notice one small thing that still feels okay. that\'s where you build from'
+    action: 'find one specific thing today that\'s still okay. describe it out loud or in writing, in detail, for thirty seconds'
   },
 
   'major-18': {
@@ -222,7 +222,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Your instincts are activated and your logic is confused. {transiting_planet} working your {natal_planet} around {house_theme} - trust the body, not the story you\'re spinning',
       'Something in {house_theme} is hidden even from you. {transiting_planet} meeting your {natal_planet} - what are you not letting yourself see?'
     ],
-    action: 'write down what you\'re anxious about without trying to explain or justify it. just the fear'
+    action: 'set a timer for eight minutes. write only what you\'re afraid of. no punctuation, no crossing out, don\'t lift the pen till it beeps'
   },
 
   'major-19': {
@@ -231,7 +231,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The clarity coming into {house_theme} right now isn\'t naive. {transiting_planet} on your {natal_planet} has been working toward this - the good thing is actually happening',
       'You keep waiting for the complication in {house_theme}. {transiting_planet} meeting your {natal_planet} - sometimes there isn\'t one. This is one of those times'
     ],
-    action: 'do one thing purely because it makes you happy. no justification needed'
+    action: 'do one thing today for no reason except that it makes you happy. don\'t explain it to anyone, including yourself'
   },
 
   'major-20': {
@@ -240,7 +240,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What have you been avoiding facing about {house_theme}? {transiting_planet} demanding your {natal_planet} see it - Judgment doesn\'t whisper',
       'The old version of you in {house_theme} is done. {transiting_planet} meeting your {natal_planet} - who you were always becoming, not who you\'ve been pretending to be'
     ],
-    action: 'name one story about yourself that you\'ve outgrown but keep repeating'
+    action: 'describe yourself in the third person for one paragraph, using your name instead of "i." notice which parts don\'t fit anymore'
   },
 
   'major-21': {
@@ -249,7 +249,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The convergence in {house_theme}: {transiting_planet} finishing its work on your {natal_planet}, the thing that has been building finally landing. Both are saying the same thing',
       'Something in {house_theme} has run its full arc under {transiting_planet}. Your {natal_planet} is different for it. Before you move on - know what you\'re carrying forward'
     ],
-    action: 'acknowledge what you\'ve actually finished. let yourself feel done'
+    action: 'write down what\'s actually finished. read it back once. then close the notebook, don\'t add a next step yet'
   },
 
   // ── CUPS ──────────────────────────────────────────────────────────────────
@@ -260,7 +260,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'A fresh emotional current in {house_theme}. {transiting_planet} meeting your {natal_planet} - Ace of Cups doesn\'t repeat what came before. This is actually new',
       'The overflowing cup in {house_theme} while {transiting_planet} hits your {natal_planet} - don\'t talk yourself out of this feeling before you\'ve fully felt it'
     ],
-    action: 'let yourself feel the new thing without immediately analysing it'
+    action: 'when the feeling comes up, don\'t name it yet. just notice where it sits in your body for one full minute before you try to explain it'
   },
 
   'cups-2': {
@@ -269,7 +269,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Mutual. Not you bending down or reaching up. {transiting_planet} hitting your {natal_planet} around {house_theme} - the rare thing: level',
       'Partnership forming where {transiting_planet} meets your {natal_planet} in {house_theme}. Two people actually looking at each other'
     ],
-    action: 'tell someone what they mean to you directly. no hints'
+    action: 'text or tell one person directly what they mean to you today. say it plainly, no jokes to soften it'
   },
 
   'cups-3': {
@@ -278,7 +278,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The group text that actually makes you laugh, the dinner that runs late - {transiting_planet} on your {natal_planet} around {house_theme}, community doing its actual job',
       'Abundance in {house_theme} multiplies when shared. {transiting_planet} meeting your {natal_planet} - stop celebrating alone'
     ],
-    action: 'reach out to people you actually like. make a plan, not a maybe'
+    action: 'message one person you actually like and set an actual date and time to see them. not "we should," a real plan'
   },
 
   'cups-4': {
@@ -287,7 +287,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'So fixated on what\'s missing in {house_theme} that you can\'t see what\'s right there. {transiting_planet} hitting your {natal_planet} - look up from your own disappointment',
       'Someone is extending something in {house_theme} and you\'re not seeing it. {transiting_planet} meeting your {natal_planet} - what are you refusing to receive?'
     ],
-    action: 'look for what\'s being offered that you\'ve been ignoring. say yes to something small'
+    action: 'find one small thing that\'s been offered to you that you\'ve brushed off. say yes to it today, out loud'
   },
 
   'cups-5': {
@@ -296,7 +296,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The grief in {house_theme} is real. {transiting_planet} working your {natal_planet} - Five of Cups doesn\'t ask you to stop mourning, it asks you to eventually turn around',
       'What you lost in {house_theme} matters. So does what survived. {transiting_planet} hitting your {natal_planet} - you\'re not left with nothing'
     ],
-    action: 'write down what you\'re grieving. then on the other side, what remains'
+    action: 'fold a paper in half. one side, write what you lost. other side, write what\'s still standing. read only the second side back'
   },
 
   'cups-6': {
@@ -305,7 +305,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The nostalgia in {house_theme} isn\'t about circumstances. {transiting_planet} working your {natal_planet} - about innocence, the version of you that didn\'t know yet what disappointment tastes like',
       'Comparing now to then while {transiting_planet} meets your {natal_planet} around {house_theme} - do you want to go back or do you just miss feeling that way?'
     ],
-    action: 'reconnect with something that used to bring joy before you learned to overthink it'
+    action: 'do one thing today that you used to enjoy as a kid, exactly the way you did it then, no adult improvements'
   },
 
   'cups-7': {
@@ -314,7 +314,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The dream in {house_theme} is seductive while {transiting_planet} clouds your {natal_planet}. Which one would you actually choose if the magic wore off?',
       'Too many visions, not enough commitment. {transiting_planet} hitting your {natal_planet} around {house_theme} - pick one and find out if it\'s real'
     ],
-    action: 'choose one option. clarity comes from commitment, not more thinking'
+    action: 'pick one option and take one real step on it today, not a mental commitment, an actual action. notice if the fog clears after, not before'
   },
 
   'cups-8': {
@@ -323,7 +323,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'It wasn\'t a failure. {transiting_planet} working your {natal_planet} around {house_theme} - the honest exit, the moment you admit this isn\'t what you need anymore',
       'The eight cups are full and you\'re leaving them. {transiting_planet} meeting your {natal_planet} in {house_theme} - why? That\'s the question worth sitting with'
     ],
-    action: 'ask yourself honestly: am i staying somewhere i\'ve already left emotionally?'
+    action: 'write one sentence answering: am i staying somewhere i\'ve already left emotionally. don\'t soften the answer'
   },
 
   'cups-9': {
@@ -332,7 +332,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Satisfaction is available right now. {transiting_planet} activating your {natal_planet} in {house_theme} - the wish fulfilled. You\'re allowed to feel it',
       'Stop moving the goalpost. {transiting_planet} meeting your {natal_planet} around {house_theme} - contentment is available if you let yourself be content'
     ],
-    action: 'actually enjoy what you have today. don\'t plan the next thing. just this'
+    action: 'pick one good thing you already have and spend two full minutes with it, no phone, before you let yourself think about what\'s next'
   },
 
   'cups-10': {
@@ -341,7 +341,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The rainbow after the storms. {transiting_planet} activating your {natal_planet} around {house_theme} - the love that holds, the whole picture',
       'Fulfilment, not perfection. {transiting_planet} meeting your {natal_planet} in {house_theme} - the good life and you\'re standing in it'
     ],
-    action: 'call or message the person who makes you feel most at home'
+    action: 'call, don\'t text, the person who makes you feel most at home. today, not this week'
   },
 
   'cups-page': {
@@ -350,7 +350,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Emotional openness without knowing what to do with it. {transiting_planet} working your {natal_planet} around {house_theme} - the message that surprises you. Read it',
       'Something is making itself known in {house_theme} through feeling. {transiting_planet} hitting your {natal_planet} - be curious about it, not clinical'
     ],
-    action: 'let yourself feel something without immediately needing to understand it'
+    action: 'when something moves you today, sit with it for one minute before you try to figure out what it means'
   },
 
   'cups-knight': {
@@ -359,7 +359,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The invitation in {house_theme} while {transiting_planet} meets your {natal_planet} - the gesture, the poetry, the grand declaration. Is there substance underneath?',
       'Following emotion into {house_theme} while {transiting_planet} activates your {natal_planet} - gorgeous and impractical. Useful for starting things'
     ],
-    action: 'make the romantic or creative gesture you\'ve been overthinking. do it while the feeling is alive'
+    action: 'make the gesture you\'ve been overthinking within the next hour, while the feeling\'s still live. don\'t wait for the perfect version'
   },
 
   'cups-queen': {
@@ -368,7 +368,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The empathy you\'re extending in {house_theme} while {transiting_planet} works your {natal_planet} - feels what others feel. Set a boundary before you absorb it all',
       'Emotional intelligence in {house_theme}. {transiting_planet} meeting your {natal_planet} - she knows. She just knows. And acts from that, not from logic'
     ],
-    action: 'trust your instinct about how someone is feeling. act on it'
+    action: 'name, out loud or in writing, what you think someone is actually feeling right now. then check it with them directly'
   },
 
   'cups-king': {
@@ -377,7 +377,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Someone in {house_theme} needs your steadiness. {transiting_planet} working your {natal_planet} - leads from the heart without losing the head',
       'The feelings in {house_theme} are big. {transiting_planet} meeting your {natal_planet} - you can hold all of it without being swept away'
     ],
-    action: 'be the steady one for someone today. feel your feelings but don\'t perform them'
+    action: 'when you feel something big today, name it silently to yourself in one word before you respond to anyone'
   },
 
   // ── SWORDS ────────────────────────────────────────────────────────────────
@@ -388,7 +388,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'New mental clarity in {house_theme}. {transiting_planet} hitting your {natal_planet} - the breakthrough thought, the thing that suddenly makes everything make sense',
       'The truth in {house_theme} cuts clean. {transiting_planet} meeting your {natal_planet} - sharp, not cruel. Use it'
     ],
-    action: 'write down the truth you just realised. clearly. in one sentence'
+    action: 'write the truth you just realised in exactly one sentence. no qualifiers, no "but"'
   },
 
   'swords-2': {
@@ -397,7 +397,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Neither choice feels safe so you made the standoff. {transiting_planet} on your {natal_planet} around {house_theme} - the pause costs more than choosing',
       'How long can you hold this? {transiting_planet} hitting your {natal_planet} in {house_theme} - making no decision is also a decision'
     ],
-    action: 'make the choice you\'ve been stalling on. imperfect action beats perfect paralysis'
+    action: 'give yourself until 6pm today to make the choice you\'ve been stalling on. set an alarm for it if you have to'
   },
 
   'swords-3': {
@@ -406,7 +406,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Why you flinch at that tone, why you can\'t stop checking their profile. {transiting_planet} on your {natal_planet} around {house_theme} - the moment trust cracked and the sound it made',
       'Grief in {house_theme} that lives in the chest, not the head. {transiting_planet} meeting your {natal_planet} - it doesn\'t respond to logic. It just has to be felt'
     ],
-    action: 'let yourself grieve it properly instead of trying to rationalize it away'
+    action: 'stop explaining why it shouldn\'t hurt. set a timer for five minutes and let yourself feel it without arguing back'
   },
 
   'swords-4': {
@@ -415,7 +415,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You can\'t think your way through this today. {transiting_planet} working your {natal_planet} around {house_theme} - recuperation is part of the process',
       'The mind needs to stop in {house_theme}. {transiting_planet} hitting your {natal_planet} - you don\'t have to figure this out right now. That\'s not avoidance, that\'s wisdom'
     ],
-    action: 'give yourself permission to not figure it out today. genuine rest'
+    action: 'pick a specific two-hour block today with no problem-solving allowed in it. write it down like an appointment'
   },
 
   'swords-5': {
@@ -424,7 +424,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Is being right in {house_theme} worth more than the relationship? {transiting_planet} working your {natal_planet} - count the bodies after the battle',
       'The conflict in {house_theme} has a winner and it might be you. {transiting_planet} meeting your {natal_planet} - at what cost?'
     ],
-    action: 'ask honestly if winning this particular fight is worth what it\'s costing'
+    action: 'write down what winning this fight actually costs you. read it before you say anything else in it'
   },
 
   'swords-6': {
@@ -433,7 +433,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You\'re not running from {house_theme}. {transiting_planet} working your {natal_planet} - deliberate departure. Taking what you need, leaving what you don\'t',
       'Grief and relief happening at the same time in {house_theme}. {transiting_planet} meeting your {natal_planet} - both are okay'
     ],
-    action: 'pack what you need for the next phase. put down what doesn\'t belong where you\'re going'
+    action: 'write two lists: what you\'re bringing forward, what you\'re leaving here. keep the first list somewhere you\'ll see it'
   },
 
   'swords-7': {
@@ -442,7 +442,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'That loophole, that half-truth, that thing you\'re getting away with in {house_theme}. {transiting_planet} working your {natal_planet} - works until it doesn\'t',
       'Strategy or deception? {transiting_planet} hitting your {natal_planet} around {house_theme} - which one and could you defend it out loud?'
     ],
-    action: 'audit yourself. is there something you\'re being less than honest about?'
+    action: 'write down the one thing you\'ve been less than honest about, in a single sentence, as if someone else would read it'
   },
 
   'swords-8': {
@@ -451,7 +451,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The prison in {house_theme} is mental. {transiting_planet} working your {natal_planet} - the belief that you\'re stuck is doing more work than any actual obstacle',
       'What\'s the story you tell yourself about why you can\'t change {house_theme}? {transiting_planet} hitting your {natal_planet} - test it'
     ],
-    action: 'identify one constraint you\'ve accepted as fixed. challenge whether it actually is'
+    action: 'pick one thing you believe you can\'t do. do the smallest possible test of it today and see what actually happens'
   },
 
   'swords-9': {
@@ -460,7 +460,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Write the fear down. {transiting_planet} working your {natal_planet} around {house_theme} - none of those scenarios are happening right now',
       'The suffering in {house_theme} is real but the story generating it isn\'t. {transiting_planet} hitting your {natal_planet} - is this actually happening?'
     ],
-    action: 'write down your worst fear. then ask: is this actually happening right now?'
+    action: 'write your worst-case fear down. then next to it write only what\'s true right now, not what might be true later'
   },
 
   'swords-10': {
@@ -469,7 +469,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Total collapse in {house_theme} while {transiting_planet} meets your {natal_planet} - don\'t add more swords. This is already the end',
       'The darkest moment in {house_theme} is also the clearest. {transiting_planet} hitting your {natal_planet} - this particular story is done. Let it be'
     ],
-    action: 'let it be over. stop narrating the collapse. it happened. what\'s next?'
+    action: 'write one sentence that starts with "it\'s over now." then close the notebook. don\'t reopen the story today'
   },
 
   'swords-page': {
@@ -478,7 +478,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Mental alertness in {house_theme} while {transiting_planet} works your {natal_planet} - watching carefully, testing the edges of things',
       'Ask the question nobody\'s asking in {house_theme}. {transiting_planet} hitting your {natal_planet} - say what everyone else was thinking'
     ],
-    action: 'ask the uncomfortable question you\'ve been holding back'
+    action: 'ask the uncomfortable question out loud to the person it\'s about, today, before you talk yourself out of it'
   },
 
   'swords-knight': {
@@ -487,7 +487,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Directness in {house_theme} while {transiting_planet} meets your {natal_planet} - says what needs to be said and moves before doubt catches up',
       'Charge. {transiting_planet} hitting your {natal_planet} around {house_theme} - decisive action, sometimes reckless. Know where you\'re pointing'
     ],
-    action: 'say the direct thing. no softening. watch what changes'
+    action: 'say the direct thing in one sentence, no cushioning words in front of it. say it today'
   },
 
   'swords-queen': {
@@ -496,7 +496,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Perceptive and unsentimental. {transiting_planet} working your {natal_planet} around {house_theme} - pain made her precise, not soft',
       'Name it. {transiting_planet} meeting your {natal_planet} in {house_theme} - what do you actually see here, without the comfortable gloss?'
     ],
-    action: 'strip the story back to facts. what is actually happening, with no interpretation?'
+    action: 'write down what happened using only facts a camera would have recorded. no adjectives, no motives'
   },
 
   'swords-king': {
@@ -505,7 +505,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Intellectual authority in {house_theme}. {transiting_planet} working your {natal_planet} - sees the full picture, makes the call, lives with it',
       'Lead with the mind, not the mood. {transiting_planet} hitting your {natal_planet} around {house_theme} - what do you actually know to be true?'
     ],
-    action: 'make the decision you\'ve been circling. then stop revisiting it'
+    action: 'make the decision today and write down the date. tell yourself you\'re not allowed to reopen it for two weeks'
   },
 
   // ── WANDS ─────────────────────────────────────────────────────────────────
@@ -516,7 +516,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Creative beginning in {house_theme} while {transiting_planet} hits your {natal_planet} - the yes before the how. Start',
       'Something is igniting in {house_theme}. {transiting_planet} meeting your {natal_planet} - all fire, no plan yet. That\'s appropriate'
     ],
-    action: 'start the creative thing today. ten minutes. just to begin'
+    action: 'set a timer for ten minutes and start the creative thing. stop when it goes off, even if you want to keep going'
   },
 
   'wands-2': {
@@ -525,7 +525,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Vision needs action eventually. Two of Wands in {house_theme} while {transiting_planet} works your {natal_planet} - the plan is half-formed, the commitment not made. How long before you ship?',
       '{transiting_planet} on your {natal_planet} around {house_theme} - standing at the crossroads with the world in your hands. What are you waiting for?'
     ],
-    action: 'write down the plan, even roughly. putting it on paper makes it real'
+    action: 'spend ten minutes writing the plan, however rough. don\'t edit it, just get it down'
   },
 
   'wands-3': {
@@ -534,7 +534,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'You already made the move in {house_theme}. {transiting_planet} working your {natal_planet} - the expansion phase, the thing you set in motion arriving',
       'Already thinking about the next thing while the first thing succeeds. {transiting_planet} hitting your {natal_planet} around {house_theme} - check on what you started'
     ],
-    action: 'check on the thing you put out into the world. follow up on what you started'
+    action: 'send one follow-up message today about something you already put out there. don\'t wait for the perfect update'
   },
 
   'wands-4': {
@@ -543,7 +543,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The foundation is built in {house_theme}. {transiting_planet} activating your {natal_planet} - stability after striving, the threshold crossed',
       'Stop rushing past the win in {house_theme}. {transiting_planet} meeting your {natal_planet} - pause and recognize what you\'ve actually created'
     ],
-    action: 'acknowledge what you\'ve built. tell someone about it. let yourself feel proud'
+    action: 'tell one person what you built today, out loud, in detail, without downplaying it'
   },
 
   'wands-5': {
@@ -552,7 +552,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The conflict in {house_theme} while {transiting_planet} works your {natal_planet} - are you actually fighting or is this just friction that precedes something coalescing?',
       'Too many cooks in {house_theme}. {transiting_planet} hitting your {natal_planet} - the struggle, the testing, the friction that reveals what\'s actually strong'
     ],
-    action: 'decide if this conflict is worth your energy. if yes, fight clearly. if no, step back'
+    action: 'write one sentence deciding: worth fighting for, or not. act on whichever you wrote, today'
   },
 
   'wands-6': {
@@ -561,7 +561,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Let yourself receive it. {transiting_planet} activating your {natal_planet} in {house_theme} - shrinking it doesn\'t make you humble, it makes you dishonest',
       'You won in {house_theme}. {transiting_planet} meeting your {natal_planet} - the crowd is watching. Lead'
     ],
-    action: 'accept the acknowledgement without deflecting it. you earned it'
+    action: 'next time someone compliments what you did today, say only "thank you." no deflecting, no "it was nothing"'
   },
 
   'wands-7': {
@@ -570,7 +570,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Everyone has an opinion about {house_theme}. {transiting_planet} working your {natal_planet} - the position you won\'t abandon, the hill you\'ve chosen. Make sure it\'s worth it',
       'You got here, you can defend it. {transiting_planet} hitting your {natal_planet} in {house_theme} - but pick your battles'
     ],
-    action: 'name what you\'re actually defending. your position, your values, or your ego?'
+    action: 'write one sentence naming what you\'re actually defending. if the honest answer is ego, let this one go today'
   },
 
   'wands-8': {
@@ -579,7 +579,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The pace just changed overnight. {transiting_planet} hitting your {natal_planet} - Eight of Wands is rapid-fire movement. Things that were slow are now immediate',
       'Momentum in {house_theme} you can\'t slow down. {transiting_planet} meeting your {natal_planet} - keep up or get left behind'
     ],
-    action: 'respond to the thing that needs a response. move while the energy is live'
+    action: 'reply to the message or task that\'s been sitting, in the next hour, before the urgency fades'
   },
 
   'wands-9': {
@@ -588,7 +588,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Waiting for the next hit because there\'s always been a next hit. {transiting_planet} working your {natal_planet} - resilience that\'s become hypervigilance. Rest between battles',
       'The wounds are showing and the stance is still held in {house_theme}. {transiting_planet} hitting your {natal_planet} - you don\'t have to be fine. Just continue'
     ],
-    action: 'take stock of how far you\'ve come. you\'re closer than you think'
+    action: 'sit down for ten full minutes before you do anything else today. then write one line: how far you\'ve actually come'
   },
 
   'wands-10': {
@@ -597,7 +597,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What can you put down? {transiting_planet} working your {natal_planet} in {house_theme} - you took on everything because you could, not because you should',
       'The exhaustion in {house_theme} is self-imposed. {transiting_planet} hitting your {natal_planet} - you don\'t get a prize for suffering through things you could delegate or drop'
     ],
-    action: 'put one thing down today. delegate, cancel, or just stop'
+    action: 'pick one thing you\'re carrying and either hand it to someone else or cancel it outright today, don\'t just plan to'
   },
 
   'wands-page': {
@@ -606,7 +606,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Curiosity and fire in {house_theme}. {transiting_planet} working your {natal_planet} - the idea, the vision, the impractical impossible thing that might become real',
       'Something is exciting you in {house_theme}. {transiting_planet} hitting your {natal_planet} - explore it before you explain it'
     ],
-    action: 'share the idea with someone who gets excited about things, not someone who\'ll audit it'
+    action: 'tell the idea to one specific person who gets excited about things, today, before you tell anyone who\'ll poke holes in it'
   },
 
   'wands-knight': {
@@ -615,7 +615,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The urgency in {house_theme} while {transiting_planet} works your {natal_planet} - moves before thinking. Useful fire. Know where you\'re pointing it',
       'Action without strategy in {house_theme}. {transiting_planet} hitting your {natal_planet} - the leap is thrilling. Make sure there\'s somewhere to land'
     ],
-    action: 'channel the energy into something specific. directed action beats raw momentum'
+    action: 'pick one specific task and put today\'s restless energy into only that, for twenty-five minutes, nothing else'
   },
 
   'wands-queen': {
@@ -624,7 +624,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'What are you genuinely excited about in {house_theme}? {transiting_planet} working your {natal_planet} - builds from passion, not obligation',
       'Do the thing you\'re on fire about in {house_theme}, not the thing that looks responsible. {transiting_planet} meeting your {natal_planet} - the warmth is the authority'
     ],
-    action: 'lead with your enthusiasm today. the warmth is magnetic, don\'t suppress it'
+    action: 'say yes out loud to the thing you\'re genuinely excited about today, before you talk yourself into the responsible option'
   },
 
   'wands-king': {
@@ -633,7 +633,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Leadership through vision in {house_theme}. {transiting_planet} working your {natal_planet} - doesn\'t manage the fire, directs it. Already knows where this is going',
       'The moment to lead in {house_theme}. {transiting_planet} hitting your {natal_planet} - decisive, charismatic, five steps ahead. Make the call'
     ],
-    action: 'make the bold decision you\'ve been waiting for consensus on. leaders decide'
+    action: 'make the call today without asking anyone else first. write it down so you can\'t quietly wait for agreement instead'
   },
 
   // ── PENTACLES ─────────────────────────────────────────────────────────────
@@ -644,7 +644,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'A new practical beginning in {house_theme}. {transiting_planet} hitting your {natal_planet} - opportunity in the physical world. Plant it',
       'The tangible thing is available in {house_theme}. {transiting_planet} meeting your {natal_planet} - take the first step, the physical one, not just the mental one'
     ],
-    action: 'take one concrete financial or practical step today. something you can actually see'
+    action: 'take one financial or practical step today that produces something you can physically see, a transfer, a form filed, a thing bought or sold'
   },
 
   'pentacles-2': {
@@ -653,7 +653,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Maintaining six things but mastering none. You keep saying you\'ll stabilize once X is done. There\'s always another X. {transiting_planet} on your {natal_planet} around {house_theme} - the juggling IS the problem',
       'Saying yes to everything in {house_theme} because you\'re afraid to admit you can\'t hold it all. {transiting_planet} hitting your {natal_planet} - something drops or you choose what to put down'
     ],
-    action: 'list everything you\'re juggling. cross out two things that don\'t actually need you'
+    action: 'write down everything you\'re juggling on paper. cross out two items that would survive without you'
   },
 
   'pentacles-3': {
@@ -662,7 +662,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Can\'t build this alone. {transiting_planet} bringing your {natal_planet} into collaboration around {house_theme} - not a weakness, the design',
       'Expertise recognized and used in {house_theme}. {transiting_planet} meeting your {natal_planet} - what you know meets what they know and the thing actually gets built'
     ],
-    action: 'ask for help or bring in someone with the skill you\'re missing'
+    action: 'message one specific person today asking for the exact help you\'re missing. name the task, not just "can you help"'
   },
 
   'pentacles-4': {
@@ -671,7 +671,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Security through control. {transiting_planet} working your {natal_planet} in {house_theme} - what are you really afraid will happen if you loosen your grip?',
       'Hoarding in {house_theme}. {transiting_planet} hitting your {natal_planet} - the miser sitting on the gold. The protection is real. So is the prison'
     ],
-    action: 'ask: what am i holding onto out of fear? what would happen if i let it flow?'
+    action: 'pick one small thing you\'re gripping, money, a plan, a person, and loosen it by one notch today. spend a bit, cancel a rule, let one thing go'
   },
 
   'pentacles-5': {
@@ -680,7 +680,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Financial or material struggle in {house_theme}. {transiting_planet} working your {natal_planet} - the help exists. The question is whether you\'ll ask for it',
       'The lack in {house_theme} while {transiting_planet} hits your {natal_planet} - struggling alone when there is a door. Find it'
     ],
-    action: 'ask for help. specifically, from someone who can actually provide it'
+    action: 'name one specific person who can actually help and ask them directly today, not a general post, a direct ask'
   },
 
   'pentacles-6': {
@@ -689,7 +689,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Are you giving or receiving in {house_theme} right now? {transiting_planet} working your {natal_planet} - is the exchange fair and are you playing your actual role?',
       'Resources flowing in {house_theme}. {transiting_planet} meeting your {natal_planet} - generosity and gratitude in balance. Where\'s the flow blocked?'
     ],
-    action: 'give something freely today, or ask for what you need without guilt'
+    action: 'either give one thing away freely today with no expectation of return, or ask for what you need in a single clear sentence, no apology attached'
   },
 
   'pentacles-7': {
@@ -698,7 +698,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Building in {house_theme} and {transiting_planet} working your {natal_planet} says step back and honestly assess. Not everything worth planting is worth finishing',
       'Progress slower than expected in {house_theme}. {transiting_planet} hitting your {natal_planet} - the long game. Are you still in?'
     ],
-    action: 'assess what you\'ve been building. is it growing? is it still worth the work?'
+    action: 'write one honest paragraph on what you\'ve built so far. end it with a yes-or-no: still worth the work'
   },
 
   'pentacles-8': {
@@ -707,7 +707,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The boring middle part of {house_theme}. {transiting_planet} activating your {natal_planet} - practice, refinement, the draft you throw out. This is where skill actually forms',
       'Stop trying to skip steps in {house_theme}. {transiting_planet} hitting your {natal_planet} - the mastery you want lives in the repetition you keep resisting'
     ],
-    action: 'put in the hours on the thing that needs work. the unsexy part. do it anyway'
+    action: 'spend twenty-five uninterrupted minutes on the unglamorous part of the thing you\'re avoiding. phone away, one task only'
   },
 
   'pentacles-9': {
@@ -716,7 +716,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Abundance in {house_theme} from your own effort. {transiting_planet} activating your {natal_planet} - you don\'t need to justify enjoying what you created',
       'The independence in {house_theme} while {transiting_planet} meets your {natal_planet} - luxury that\'s yours because you made it. Receive it'
     ],
-    action: 'do something that celebrates what you\'ve built. spend on yourself without guilt'
+    action: 'spend a small amount of money on yourself today, on purpose, and notice the moment of buying it without immediately justifying it'
   },
 
   'pentacles-10': {
@@ -725,7 +725,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The whole picture in {house_theme}. {transiting_planet} working your {natal_planet} - family, wealth, tradition, the foundation that holds across generations',
       'Security that goes beyond just you in {house_theme}. {transiting_planet} hitting your {natal_planet} - what are you building that your future self will benefit from?'
     ],
-    action: 'think about one decision you could make today that your future self will thank you for'
+    action: 'write down one decision you could make today. finish the sentence "future me will thank me because..." then do it'
   },
 
   'pentacles-page': {
@@ -734,7 +734,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'New practical knowledge in {house_theme}. {transiting_planet} working your {natal_planet} - methodical, curious, turning the coin over to understand it fully',
       'Beginning of a material skill in {house_theme}. {transiting_planet} hitting your {natal_planet} - don\'t rush. Study it properly'
     ],
-    action: 'dedicate time to actually learning the practical skill. books, course, hands-on'
+    action: 'spend twenty minutes today actually practising the skill hands-on, not reading about it, not watching a video of someone else doing it'
   },
 
   'pentacles-knight': {
@@ -743,7 +743,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The necessary but unglamorous work in {house_theme}. {transiting_planet} working your {natal_planet} - not the exciting choice but the effective one',
       'Head down, keeps going in {house_theme}. {transiting_planet} meeting your {natal_planet} - someone needs to be the one who finishes. That\'s the job right now'
     ],
-    action: 'do the boring necessary thing you\'ve been postponing. the one with no glory'
+    action: 'do the boring necessary task you\'ve been avoiding, start to finish, today, even though nobody will notice'
   },
 
   'pentacles-queen': {
@@ -752,7 +752,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The home, the body, the resources. {transiting_planet} working your {natal_planet} around {house_theme} - practical magic: things flourish when you pay attention',
       'Grounded generosity in {house_theme}. {transiting_planet} meeting your {natal_planet} - feeds everyone and keeps the books balanced. Take care of your physical reality'
     ],
-    action: 'tend to your physical environment. clean something, buy fresh food, care for the body'
+    action: 'pick one physical thing to tend today, clean a space, cook a real meal, stretch for ten minutes. do the whole thing, not the quick version'
   },
 
   'pentacles-king': {
@@ -761,7 +761,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'The financial decision in {house_theme} while {transiting_planet} works your {natal_planet} - make it from strength, not fear. What do you actually know to be true?',
       'Long-term thinking in {house_theme}. {transiting_planet} hitting your {natal_planet} - built slowly, kept what worked, let go of what didn\'t. One decision toward that today'
     ],
-    action: 'make the financial or material decision you\'ve been avoiding'
+    action: 'open the account, the spreadsheet, or the contract you\'ve been avoiding today and make one actual decision in it, not just look at it'
   },
 
   // ── SUIT FALLBACKS ────────────────────────────────────────────────────────
@@ -772,7 +772,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - cut the story. Not the one about why it\'s complicated, the actual facts. Write them down',
       '{transiting_planet} meeting your {natal_planet} in {house_theme} - overthinking this to paralysis. Clarity comes from cutting, not more analysis. Decide'
     ],
-    action: 'write down the hard truth. then decide what to do with it'
+    action: 'write the hard truth in one sentence. underneath it, write the one thing you\'ll do about it today'
   },
 
   cups: {
@@ -781,7 +781,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - trying to logic through something that lives in your ribcage. You can explain why you should feel differently. You don\'t. That\'s the information',
       '{transiting_planet} meeting your {natal_planet} in {house_theme} - the friend whose text you answer first, the person whose opinion matters more than it should. You already know what this means'
     ],
-    action: 'stop explaining the feeling. just feel it for five minutes'
+    action: 'set a timer for five minutes. don\'t explain the feeling to yourself, just let it move through your body until the timer ends'
   },
 
   wands: {
@@ -790,7 +790,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever {transiting_planet} is doing to your {natal_planet} around {house_theme} - that project file you keep opening. Send the email. Make the call. Start',
       '{transiting_planet} meeting your {natal_planet} in {house_theme} - doesn\'t wait for perfect conditions. The creative urge is burning. Move while it\'s alive'
     ],
-    action: 'start. ten minutes on the thing you keep saying you\'ll do when you have more time'
+    action: 'set a timer for ten minutes and start the thing you keep saying you\'ll do when you have more time. stop when the timer ends, that\'s enough for today'
   },
 
   pentacles: {
@@ -799,7 +799,7 @@ export const cardArchetypeSynthesis: Record<string, { synthesis: string[]; actio
       'Whatever {transiting_planet} is activating in your {natal_planet} around {house_theme} - the thing you can hold. Finish the draft. Build the thing. Make it real',
       '{transiting_planet} meeting your {natal_planet} in {house_theme} - is there something physical to show for all this effort? Do the tangible thing'
     ],
-    action: 'do the concrete physical thing. not the planning of it. the thing itself'
+    action: 'do one physical, tangible version of the thing today, not the plan for it, not the list. the actual thing, even a small piece of it'
   }
 };
 
