@@ -55,9 +55,19 @@ function daysBetween(a: string, b: string): number {
   return Math.round((new Date(a).getTime() - new Date(b).getTime()) / 86400000);
 }
 
-/** Most recent first. Callers pass in history that already includes today's draw. */
+/**
+ * Most recent first, one entry per date. Callers pass in history that
+ * already includes today's draw; a second entry for the same date can only
+ * be a data artifact (only one card can be drawn a day), so the first one
+ * seen for a date wins — the caller always puts today's own draw first,
+ * ahead of whatever loadDrawHistory() returns for other dates.
+ */
 function sorted(history: DrawRecord[]): DrawRecord[] {
-  return [...history].sort((a, b) => (a.date < b.date ? 1 : -1));
+  const byDate = new Map<string, DrawRecord>();
+  for (const d of history) {
+    if (!byDate.has(d.date)) byDate.set(d.date, d);
+  }
+  return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 function suitLabel(suit: string): string {
@@ -78,7 +88,7 @@ function detectRepeat(draws: DrawRecord[]): DetectedPattern | null {
     label: 'REPEAT',
     headline: 'Same card again.',
     body: `same card twice in ${span} days. either you didn't finish the conversation with it the first time, or it's not done with you.`,
-    stat: `2ND TIME / ${span} DAYS`,
+    stat: `2ND TIME · ${span} DAYS`,
     image: '/patterns/repeat.jpg',
     bg: '#14180f',
   };
@@ -101,7 +111,7 @@ function detectNumber(draws: DrawRecord[]): DetectedPattern | null {
         label: 'NUMBER',
         headline: `Three ${rank}s this week.`,
         body: `${rank}s across ${suits.size} different suits. every number carries its own meaning whichever suit it lands in. something in that number's theme is close, whichever part of life it's in.`,
-        stat: `${count} / ${suits.size} SUITS / 7 DAYS`,
+        stat: `${count}/${suits.size} SUITS · 7D`,
         image: '/patterns/number.jpg',
         bg: '#ff2b8f',
         blend: true,
@@ -126,7 +136,7 @@ function detectCourt(draws: DrawRecord[]): DetectedPattern | null {
         label: 'COURT CARDS',
         headline: `Three ${plural}, nine days.`,
         body: `when the court cards stack up, it's usually not the situation, it's a person. someone's playing a bigger part in this than the events are.`,
-        stat: `${count} ${plural.toUpperCase()} / 9 DAYS`,
+        stat: `${count} ${plural.toUpperCase()} · 9D`,
         image: '/patterns/court.jpg',
         bg: '#14180f',
       };
@@ -145,7 +155,7 @@ function detectMajor(draws: DrawRecord[]): DetectedPattern | null {
       label: 'MAJOR ARCANA',
       headline: 'All big cards lately.',
       body: `the small stuff hasn't been showing up. lately it's all the big cards. whatever this is, it isn't a logistics problem.`,
-      stat: `${majors} OF ${window.length} DRAWS / EXPECTED ~28%`,
+      stat: `${majors}/${window.length} DRAWS · EXP ~28%`,
       image: '/patterns/major.jpg',
       bg: '#14180f',
     };
@@ -160,14 +170,12 @@ function detectSuit(draws: DrawRecord[]): DetectedPattern | null {
     const count = window.filter(d => parseCard(d.cardId).suit === suit).length;
     const ratio = count / window.length;
     if (ratio >= 0.38) {
-      const ranks = window.filter(d => parseCard(d.cardId).suit === suit).map(d => parseCard(d.cardId).rank);
-      const mostDrawn = mostCommon(ranks);
       return {
         id: 'suit',
         label: 'SUIT',
         headline: `${suitLabel(suit)}, ${count} of ${window.length}.`,
         body: `${count} of your last ${window.length} draws were ${suit}. that's not the odds. body, money, the ground under you keeps asking to be looked at.`,
-        stat: `${count} OF ${window.length} / EXPECTED 25%${mostDrawn ? ` · MOST DRAWN: ${mostDrawn.toUpperCase()}` : ''}`,
+        stat: `${count}/${window.length} · EXP 25%`,
         image: '/patterns/suit.jpg',
         bg: '#5f6d18',
       };
@@ -186,7 +194,7 @@ function detectReversed(draws: DrawRecord[]): DetectedPattern | null {
       label: 'REVERSED',
       headline: 'Mostly sideways.',
       body: `most of what's come up lately has come up sideways. reversed isn't opposite, it's turned inward. you're the one holding this back right now.`,
-      stat: `${reversed} OF ${window.length} DRAWS / EXPECTED 30%`,
+      stat: `${reversed}/${window.length} DRAWS · EXP 30%`,
       image: '/patterns/reversed.jpg',
       bg: '#14180f',
       rotate: true,
@@ -212,7 +220,7 @@ function detectBaseline(draws: DrawRecord[]): DetectedPattern | null {
       label: 'YOUR BASELINE',
       headline: 'Bigger than your normal.',
       body: `compared to your own history, not just the deck, you're pulling far more majors than usual. whatever this is, it's bigger than your normal.`,
-      stat: `${Math.round(thisRatio * 100)}% MAJORS THIS MONTH / YOUR AVG ${Math.round(priorRatio * 100)}%`,
+      stat: `${Math.round(thisRatio * 100)}% MAJORS · AVG ${Math.round(priorRatio * 100)}%`,
       image: '/patterns/baseline.jpg',
       bg: '#b4d63a',
       blend: true,
@@ -237,7 +245,7 @@ function detectEcho(draws: DrawRecord[]): DetectedPattern | null {
     label: 'ECHO',
     headline: 'Same week, a year on.',
     body: `same card, same week, one year apart. worth asking what was true then that might be true again.`,
-    stat: `SAME CARD / SAME WEEK LAST YEAR`,
+    stat: `SAME CARD · LAST YEAR`,
     image: '/patterns/echo.jpg',
     bg: '#5f6d18',
   };
@@ -259,7 +267,7 @@ function detectReversedRetrograde(draws: DrawRecord[], sky: SkyContext): Detecte
       label: 'REVERSED × RETROGRADE',
       headline: 'A review stretch.',
       body: `the cards keep turning up sideways while most of the sky's moving backwards too. this isn't a bad stretch, it's a review stretch. nothing forward-facing finishes until the retrogrades clear.`,
-      stat: `${reversed} REVERSED / ${sky.retrogradePlanets.length} PLANETS RETROGRADE`,
+      stat: `${reversed} REVERSED · ${sky.retrogradePlanets.length} RETRO`,
       image: '/patterns/reversed-retrograde.jpg',
       bg: '#6b3ff5',
       blend: true,
@@ -276,7 +284,7 @@ function detectMarsRetrograde(sky: SkyContext): DetectedPattern | null {
     label: 'RETROGRADE',
     headline: 'Mars retrograde.',
     body: `mars stopped moving forward. the planet that usually pushes you to act is asking you to redo instead of advance.`,
-    stat: 'MARS RETROGRADE / RIGHT NOW',
+    stat: 'MARS RETROGRADE · NOW',
     image: '/patterns/retrograde.jpg',
     bg: '#6b3ff5',
   };
@@ -296,26 +304,11 @@ function detectConvergence(sky: SkyContext): DetectedPattern | null {
     label: 'CONVERGENCE',
     headline: `${hit.count} transits on your ${planet}.`,
     body: `your ${hit.natalPlanet} is getting hit from ${hit.count} directions at once right now. expect whatever it governs to feel unusually loud.`,
-    stat: `${hit.count} TRANSITS / THIS WEEK`,
+    stat: `${hit.count} TRANSITS · THIS WEEK`,
     image: '/patterns/convergence.jpg',
     bg: '#b4d63a',
     blend: true,
   };
-}
-
-function mostCommon(values: string[]): string | null {
-  if (values.length === 0) return null;
-  const counts = new Map<string, number>();
-  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
-  let best: string | null = null;
-  let bestCount = 0;
-  for (const [v, c] of counts) {
-    if (c > bestCount) {
-      best = v;
-      bestCount = c;
-    }
-  }
-  return bestCount >= 2 ? best : null;
 }
 
 /**

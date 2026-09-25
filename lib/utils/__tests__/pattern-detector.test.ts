@@ -30,6 +30,16 @@ describe('detectPatterns', () => {
     expect(ids(history)).toContain('repeat');
   });
 
+  it('does not call a duplicate entry for the same date a repeat — only one card can be drawn a day', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const history = [
+      { date: today, cardId: 'major-16', isReversed: false },
+      { date: today, cardId: 'major-16', isReversed: false }, // stale duplicate for today's date
+      { date: '2020-01-01', cardId: 'cups-2', isReversed: false },
+    ];
+    expect(ids(history)).not.toContain('repeat');
+  });
+
   it('finds a number cluster across suits', () => {
     const history = draws(['cups-9', 'swords-9', 'wands-3', 'pentacles-9', 'major-1']);
     expect(ids(history)).toContain('number');

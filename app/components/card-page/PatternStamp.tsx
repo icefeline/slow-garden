@@ -31,8 +31,8 @@ export function PatternStamps({ patterns }: PatternStampsProps) {
     const middle = railBox.left + railBox.width / 2;
     let nearest = 0;
     let best = Infinity;
-    Array.from(el.children).forEach((child, i) => {
-      const box = (child as HTMLElement).getBoundingClientRect();
+    el.querySelectorAll('[data-pattern-item]').forEach((child, i) => {
+      const box = child.getBoundingClientRect();
       const distance = Math.abs(box.left + box.width / 2 - middle);
       if (distance < best) {
         best = distance;
@@ -51,8 +51,9 @@ export function PatternStamps({ patterns }: PatternStampsProps) {
       </div>
       <div className={styles.log}>&gt; {current.label}</div>
       <div className={styles.patternRow} ref={railRef} onScroll={onScroll}>
+        <div className={styles.patternSpacer} aria-hidden="true" />
         {patterns.map(pattern => (
-          <div key={pattern.id} className={styles.patternItem}>
+          <div key={pattern.id} className={styles.patternItem} data-pattern-item>
             <div className={styles.patternCard}>
               <div className={styles.patternGrid}>
                 <div className={styles.patternImage} style={{ background: pattern.bg }}>

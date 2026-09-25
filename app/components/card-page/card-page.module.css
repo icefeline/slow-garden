@@ -313,25 +313,43 @@
 }
 
 /* The rail: overflow-x with mandatory snap, scrollbar hidden, momentum
-   scrolling on. The left edge is deliberately NOT full-bleed — it sits at
-   the module's own inset, same as the reading text above it, which is what
-   makes every start-aligned card line up with that text for free (no
-   scroll-padding, no offset math — see the last-child rule below for why
-   scroll-padding-left didn't work here). The right edge IS full-bleed,
-   purely so the peek of the next card reaches the actual screen edge
-   instead of stopping short at the module's own padding. */
+   scrolling on. Both edges are full-bleed, so a card exits and peeks at the
+   actual screen edge on either side rather than stopping short at the
+   module's own padding — a card leaving on the left should disappear into
+   the same true edge the next card peeks in from on the right, not into the
+   module's inset. Every RESTING card, not just the first, still needs to
+   land flush with the reading text above it, not with that full-bleed
+   edge — scroll-padding-left is what does that for the second card onward,
+   shifting where each one's own scroll-snap-align: start actually lands.
+   It can't do this for card one, though: with nothing scrollable before it,
+   its snap target has nowhere to go but the true edge, padding or not — see
+   .patternSpacer below for why that one needs real leading space instead. */
 .patternRow {
-  --pattern-card-w: min(500px, 85%);
+  --pattern-card-w: min(560px, 90%);
+  --pattern-gap: 10px;
   display: flex;
-  gap: 10px;
-  margin: 10px calc(-1 * var(--mod-pad)) 0 0;
+  gap: var(--pattern-gap);
+  margin: 10px calc(-1 * var(--mod-pad)) 0 calc(-1 * var(--mod-pad));
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--mod-pad);
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 
 .patternRow::-webkit-scrollbar { display: none; }
+
+/* A leading, snapping spacer that lands card one flush with the text above
+   it — the one card scroll-padding-left (above) can't reach, since there's
+   no scrollable room before it for that padding to place it into. Its width
+   is the module's own inset minus the row's gap, not the inset alone: the
+   gap between this spacer and card one is real layout space too, and
+   without subtracting it card one would still rest a gap's-width past the
+   text. */
+.patternSpacer {
+  flex: 0 0 max(0px, calc(var(--mod-pad) - var(--pattern-gap)));
+  scroll-snap-align: start;
+}
 
 /* Every card gets the same width rule, so they read as a consistent set
    regardless of how much text is in any one of them; height is left to its
@@ -425,10 +443,11 @@
   font-family: var(--f-mono);
   font-size: 8.5px;
   letter-spacing: .1em;
-  border-top: 1px dotted #14180f;
   margin-top: 8px;
-  padding-top: 8px;
   opacity: .75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* The quota ask's coffee link — same lime-on-cobalt pairing as `.share`,
