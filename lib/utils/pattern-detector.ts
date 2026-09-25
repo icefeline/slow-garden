@@ -320,6 +320,9 @@ function detectConvergence(sky: SkyContext): DetectedPattern | null {
   };
 }
 
+/** Below this, nothing fires — see the note on MIN_DRAWS_FOR_PATTERNS. */
+const MIN_DRAWS_FOR_PATTERNS = 7;
+
 /**
  * Every pattern that fires today, rarest and most specific first. `history`
  * must include today's just-drawn card as its most recent entry — callers
@@ -327,9 +330,16 @@ function detectConvergence(sky: SkyContext): DetectedPattern | null {
  * view reads. More than one can be true at once (a suit run and a live
  * retrograde don't exclude each other), so the stamp row shows all of them
  * rather than picking a single winner.
+ *
+ * Nothing fires before a week of draws exist, full stop — including the
+ * sky-only patterns (convergence, Mars retrograde), which would otherwise
+ * happily fire on someone's very first day since they don't touch draw
+ * history at all. A pattern is supposed to read as something building over
+ * time; on day one it would just read as the app being dramatic.
  */
 export function detectPatterns(history: DrawRecord[], sky: SkyContext): DetectedPattern[] {
   const draws = sorted(history);
+  if (draws.length < MIN_DRAWS_FOR_PATTERNS) return [];
   const reversedRetrograde = detectReversedRetrograde(draws, sky);
 
   return [
