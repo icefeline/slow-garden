@@ -87,7 +87,7 @@ function detectRepeat(draws: DrawRecord[]): DetectedPattern | null {
     id: 'repeat',
     label: 'REPEAT',
     headline: 'Same card again.',
-    body: `same card twice in ${span} days. either you didn't finish the conversation with it the first time, or it's not done with you.`,
+    body: `the same card twice in ${span} days means whatever it named the first time is still open. it didn't resolve, so it came back.`,
     stat: `2ND TIME · ${span} DAYS`,
     image: '/patterns/repeat.jpg',
     bg: '#14180f',
@@ -110,7 +110,7 @@ function detectNumber(draws: DrawRecord[]): DetectedPattern | null {
         id: 'number',
         label: 'NUMBER',
         headline: `Three ${rank}s this week.`,
-        body: `${rank}s across ${suits.size} different suits. every number carries its own meaning whichever suit it lands in. something in that number's theme is close, whichever part of life it's in.`,
+        body: `${rank}s across ${suits.size} different suits in a week makes the number the constant. whichever suit it landed in was incidental, so whatever ${rank} means is what's actually running through the different parts of your life it touched.`,
         stat: `${count}/${suits.size} SUITS · 7D`,
         image: '/patterns/number.jpg',
         bg: '#ff2b8f',
@@ -135,7 +135,7 @@ function detectCourt(draws: DrawRecord[]): DetectedPattern | null {
         id: 'court',
         label: 'COURT CARDS',
         headline: `Three ${plural}, nine days.`,
-        body: `when the court cards stack up, it's usually not the situation, it's a person. someone's playing a bigger part in this than the events are.`,
+        body: `court cards read as people more than events. three of them clustered in nine days means a person is driving what's happening more than the situation is, worth asking who instead of what.`,
         stat: `${count} ${plural.toUpperCase()} · 9D`,
         image: '/patterns/court.jpg',
         bg: '#14180f',
@@ -154,7 +154,7 @@ function detectMajor(draws: DrawRecord[]): DetectedPattern | null {
       id: 'major',
       label: 'MAJOR ARCANA',
       headline: 'All big cards lately.',
-      body: `the small stuff hasn't been showing up. lately it's all the big cards. whatever this is, it isn't a logistics problem.`,
+      body: `the minor cards are the daily mechanics of life, errands and logistics. lately it's been almost all majors instead, which makes this a life theme, not a logistics problem.`,
       stat: `${majors}/${window.length} DRAWS · EXP ~28%`,
       image: '/patterns/major.jpg',
       bg: '#14180f',
@@ -162,6 +162,15 @@ function detectMajor(draws: DrawRecord[]): DetectedPattern | null {
   }
   return null;
 }
+
+// What's actually recurring when a suit dominates — the pattern the reader
+// can check against their own life, not just the suit's name.
+const SUIT_DOMAIN: Record<string, string> = {
+  wands: 'everything to do with your drive and what you\'re building',
+  cups: 'everything to do with how you feel and who you feel it with',
+  swords: 'everything to do with your mind and the decisions you keep circling',
+  pentacles: 'everything to do with your body, your money, the ground under you',
+};
 
 function detectSuit(draws: DrawRecord[]): DetectedPattern | null {
   const window = draws.slice(0, 21).filter(d => !isMajor(d.cardId));
@@ -174,7 +183,7 @@ function detectSuit(draws: DrawRecord[]): DetectedPattern | null {
         id: 'suit',
         label: 'SUIT',
         headline: `${suitLabel(suit)}, ${count} of ${window.length}.`,
-        body: `${count} of your last ${window.length} draws were ${suit}. that's not the odds. body, money, the ground under you keeps asking to be looked at.`,
+        body: `${count} of your last ${window.length} draws were ${suit}, well past what chance explains. ${SUIT_DOMAIN[suit]} is doing all the work right now, whether or not you're looking at it directly.`,
         stat: `${count}/${window.length} · EXP 25%`,
         image: '/patterns/suit.jpg',
         bg: '#5f6d18',
@@ -193,7 +202,7 @@ function detectReversed(draws: DrawRecord[]): DetectedPattern | null {
       id: 'reversed',
       label: 'REVERSED',
       headline: 'Mostly sideways.',
-      body: `most of what's come up lately has come up sideways. reversed isn't opposite, it's turned inward. you're the one holding this back right now.`,
+      body: `reversed means the same theme turned inward: held back, working under the surface instead of out in the open. most of what's come up lately has stayed there, and you're the one holding it back.`,
       stat: `${reversed}/${window.length} DRAWS · EXP 30%`,
       image: '/patterns/reversed.jpg',
       bg: '#14180f',
@@ -219,7 +228,7 @@ function detectBaseline(draws: DrawRecord[]): DetectedPattern | null {
       id: 'baseline',
       label: 'YOUR BASELINE',
       headline: 'Bigger than your normal.',
-      body: `compared to your own history, not just the deck, you're pulling far more majors than usual. whatever this is, it's bigger than your normal.`,
+      body: `compared to your own history, you're pulling far more majors than usual this month. majors are life themes rather than daily mechanics, so whatever's active runs bigger than your normal range, past what a busy stretch alone would explain.`,
       stat: `${Math.round(thisRatio * 100)}% MAJORS · AVG ${Math.round(priorRatio * 100)}%`,
       image: '/patterns/baseline.jpg',
       bg: '#b4d63a',
@@ -244,7 +253,7 @@ function detectEcho(draws: DrawRecord[]): DetectedPattern | null {
     id: 'echo',
     label: 'ECHO',
     headline: 'Same week, a year on.',
-    body: `same card, same week, one year apart. worth asking what was true then that might be true again.`,
+    body: `same card, same week, one year apart. cards repeating on a yearly rhythm like this usually point to a cycle, worth asking what was true then that might still be true now.`,
     stat: `SAME CARD · LAST YEAR`,
     image: '/patterns/echo.jpg',
     bg: '#5f6d18',
@@ -266,7 +275,7 @@ function detectReversedRetrograde(draws: DrawRecord[], sky: SkyContext): Detecte
       id: 'reversed-retrograde',
       label: 'REVERSED × RETROGRADE',
       headline: 'A review stretch.',
-      body: `the cards keep turning up sideways while most of the sky's moving backwards too. this isn't a bad stretch, it's a review stretch. nothing forward-facing finishes until the retrogrades clear.`,
+      body: `most of what's come up has come up sideways, and most of the sky is moving backwards too. retrograde is when a planet stops pushing forward and starts reworking what's already there, which makes this a review stretch rather than a bad one. nothing forward-facing finishes until it clears.`,
       stat: `${reversed} REVERSED · ${sky.retrogradePlanets.length} RETRO`,
       image: '/patterns/reversed-retrograde.jpg',
       bg: '#6b3ff5',
@@ -283,7 +292,7 @@ function detectMarsRetrograde(sky: SkyContext): DetectedPattern | null {
     id: 'retrograde',
     label: 'RETROGRADE',
     headline: 'Mars retrograde.',
-    body: `mars stopped moving forward. the planet that usually pushes you to act is asking you to redo instead of advance.`,
+    body: `mars is the planet that pushes you to act, and right now it's stopped moving forward. the drive redirects instead of switching off: redo instead of advance, revisit instead of launch.`,
     stat: 'MARS RETROGRADE · NOW',
     image: '/patterns/retrograde.jpg',
     bg: '#6b3ff5',
@@ -303,7 +312,7 @@ function detectConvergence(sky: SkyContext): DetectedPattern | null {
     id: 'convergence',
     label: 'CONVERGENCE',
     headline: `${hit.count} transits on your ${planet}.`,
-    body: `your ${hit.natalPlanet} is getting hit from ${hit.count} directions at once right now. expect whatever it governs to feel unusually loud.`,
+    body: `${hit.count} different planets are aspecting your ${hit.natalPlanet} at once, each pulling a different way. that's a pile-up, so whatever it governs is going to feel loud and contradictory this week.`,
     stat: `${hit.count} TRANSITS · THIS WEEK`,
     image: '/patterns/convergence.jpg',
     bg: '#b4d63a',
