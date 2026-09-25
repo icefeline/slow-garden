@@ -13,6 +13,7 @@ import { getHere } from '@/lib/utils/here';
 import CardSlotReveal from './CardSlotReveal';
 import { generateInsight, TransitData, GeneratedInsight } from '@/lib/utils/insight-generator-v2';
 import type { ActiveTransit } from '@/lib/types/astrology';
+import { detectPatterns, loadDrawHistory, convergencesFromTransits, type DrawRecord } from '@/lib/utils/pattern-detector';
 
 interface TarotCardProps {
   card: TarotCardType;
@@ -378,6 +379,19 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
         const transitData = convertToTransitData(dominantTransit);
         const transitMeta = generateInsight(card.id, transitData, isReversed);
 
+        // The pattern stamp: today's draw plus whatever's already in the
+        // history, checked against the sky data this same response just
+        // brought back. Frozen into the cached reading below for the same
+        // reason `readout` is — the pattern a reading showed the day it was
+        // drawn shouldn't shift retroactively as later draws come in.
+        const todayRecord: DrawRecord = { date: readingDate, cardId: card.id, isReversed };
+        const history = [todayRecord, ...loadDrawHistory().filter(d => d.date !== readingDate)];
+        const allTransits: ActiveTransit[] = Array.isArray(data.allTransits) ? data.allTransits : [];
+        const patterns = detectPatterns(history, {
+          retrogradePlanets: Array.isArray(data.retrogradePlanets) ? data.retrogradePlanets : [],
+          convergentNatalPlanets: convergencesFromTransits(allTransits),
+        });
+
         const freshInsight: GeneratedInsight = {
           keyPhrase: data.claudeInsight.keyPhrase,
           insight: data.claudeInsight.insight,
@@ -399,6 +413,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
             exact: dominantTransit.phase === 'peak',
             sky: data.sky ?? null,
           },
+          patterns,
         };
 
         setGeneratedInsight(freshInsight);
@@ -587,6 +602,7 @@ export default function TarotCard({ card, isReversed, isRevealed, animateReveal,
           action={generatedInsight?.action}
           transitExplanation={generatedInsight?.transitExplanation}
           exact={generatedInsight?.readout?.exact}
+          patterns={generatedInsight?.patterns}
           isLoading={isGenerating}
           isRateLimited={isRateLimited}
           hasError={!!insightError}

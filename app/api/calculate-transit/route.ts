@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import {
-  calculateNatalChart, calculateActiveTransits, getDominantTransit, grahaPositionsAt,
+  calculateNatalChart, calculateActiveTransits, getDominantTransit, grahaPositionsAt, getRetrogradePlanets,
 } from '@/lib/utils/astrology-calculator';
 import { buildVedicContext, describeVedicContext } from '@/lib/utils/vedic-signal';
 import { cardPlanetAffinity } from '@/lib/data/insight-structure-templates';
@@ -193,7 +193,8 @@ Write a JSON object with exactly these four fields:
 
 "insight": 2-4 sentences. This is the main reading. The card is a pattern. The transit is a pressure or an opening. The house is where it's playing out in their life. Put those three things together — not as separate facts, but as one coherent thing that's happening to them right now. Let their sun sign quietly shape the flavour of how they experience it. Make them feel seen in a way that surprises them slightly. No moralising, no advice. No questions.
 
-"action": 1-2 sentences. Not a task — a practice of noticing. Help them catch themselves at the exact moment the pattern runs automatically: the flinch, the deflection, the story they tell to stay comfortable. Frame it as an observation to collect, not a behaviour to change. The awareness is the whole point.
+"action": 1-2 sentences. Still a practice of noticing, not a task to schedule — the awareness is still the point. Help them catch themselves at the exact moment the pattern runs automatically: the flinch, the deflection, the story they tell to stay comfortable. But attach one small thing to actually do the instant they catch it, not later: a breath, unclenching a jaw, putting the phone down, staying quiet one beat longer than usual, or literally doing nothing on purpose for the next few seconds while they stay with it. It has to happen right where they already are, in seconds — never something that needs minutes set aside or a task for later. Noticing plus one immediate, tiny move, not noticing alone.
+Do not default to opening with "notice". Vary the opening across readings — start from the moment itself ("the second you..."), the feeling ("when your jaw tightens..."), a direct instruction ("catch..." / "watch for..." / "stay with..."), or the person ("you already do this:"). The sentence should never announce itself as an instruction before it becomes one.
 
 "memoryNote": One sentence, lowercase. An honest private note about what's active in this person's inner life right now — written as a theme, not an event. No card names, no planet names, no "they" or "you". Pattern language only ("tension between X and Y" or "themes of A surfacing alongside B").
 
@@ -336,6 +337,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       dominantTransit,
       allTransits: activeTransits,
+      retrogradePlanets: getRetrogradePlanets(now),
       claudeInsight,
       // The reading page's margin column.
       //

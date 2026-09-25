@@ -166,10 +166,14 @@
   /* Matches the 18px that separates the blocks in the left column — the sub is
      a different voice from the lede, not a continuation of it. */
   margin-top: 20px;
-  font-size: 12.5px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: .04em;
   line-height: 1.6;
   color: var(--paper-3);
-  text-transform: lowercase;
+  text-transform: uppercase;
+  text-align: justify;
+  text-align-last: justify;
 }
 
 /* --- 08 distill -------------------------------------------- */
@@ -298,6 +302,133 @@
   padding: 0 0 2px;
   margin-top: 10px;
   cursor: pointer;
+}
+
+/* The pattern stamp. No dotted rule above it — the reading flows straight
+   into it, the way "> TRANSIT: ..." flows straight on from "> READ CARD
+   --VERBOSE" with nothing between them. .try's own dotted rule still runs
+   below, so the pattern row and "try this" stay visually separated. */
+.patternStamp {
+  margin-top: 16px;
+}
+
+/* The rail: overflow-x with mandatory snap, scrollbar hidden, momentum
+   scrolling on. The left edge is deliberately NOT full-bleed — it sits at
+   the module's own inset, same as the reading text above it, which is what
+   makes every start-aligned card line up with that text for free (no
+   scroll-padding, no offset math — see the last-child rule below for why
+   scroll-padding-left didn't work here). The right edge IS full-bleed,
+   purely so the peek of the next card reaches the actual screen edge
+   instead of stopping short at the module's own padding. */
+.patternRow {
+  --pattern-card-w: min(500px, 85%);
+  display: flex;
+  gap: 10px;
+  margin: 10px calc(-1 * var(--mod-pad)) 0 0;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.patternRow::-webkit-scrollbar { display: none; }
+
+/* Every card gets the same width rule, so they read as a consistent set
+   regardless of how much text is in any one of them; height is left to its
+   own content instead (see .patternItem below), so nothing is ever clipped. */
+.patternItem {
+  flex: 0 0 var(--pattern-card-w);
+  scroll-snap-align: start;
+  /* Stretches its card to match the tallest card in the row — the default
+     cross-axis behaviour of a flex child — so a short card's divider still
+     ends up level with a longer neighbour's, without capping anyone's text. */
+  display: flex;
+}
+
+/* The real fix for "can't scroll all the way": a start-aligned last card
+   whose own width is less than the rail's visible width can never reach the
+   start position on scrollLeft alone — the browser clamps scrolling at
+   scrollWidth minus clientWidth, and without this the last card's own width
+   leaves a shortfall exactly the size of the leftover space beside it. This
+   margin is that exact leftover (100% minus the card width), not a small
+   fixed inset, so the last card can always scroll fully flush. */
+.patternItem:last-child { margin-right: calc(100% - var(--pattern-card-w)); }
+
+.patternCard {
+  flex: 1;
+  background-color: #f4f1e4;
+  background-image: radial-gradient(circle, #cdf24e 2.5px, transparent 3px);
+  background-size: 9px 9px;
+  background-position: -4px -4px;
+  padding: 4px;
+}
+
+.patternGrid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  background: #f4f1e4;
+}
+
+.patternImage {
+  position: relative;
+  overflow: hidden;
+}
+
+.patternImage img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.patternText {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  color: #14180f;
+  min-width: 0;
+}
+
+/* Headline and body share the space above the stat line — the stat line's
+   own flex sizing (below) is what keeps it pinned to the card's bottom edge
+   whether this group is one line or five. Nothing here clips or truncates:
+   the card grows, and the row stretches its shorter neighbours to match. */
+.patternTop {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.patternHeadline {
+  font-family: var(--f-sans);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.15;
+  letter-spacing: -.01em;
+}
+
+.patternBody {
+  font-family: var(--f-term);
+  font-size: 15px;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+
+.patternStat {
+  flex: 0 0 auto;
+  font-family: var(--f-mono);
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  border-top: 1px dotted #14180f;
+  margin-top: 8px;
+  padding-top: 8px;
+  opacity: .75;
 }
 
 /* The quota ask's coffee link — same lime-on-cobalt pairing as `.share`,
@@ -502,7 +633,7 @@
   .keywords ul { font-size: 16px; }
   .meaning { margin-top: 0; border-top: 1px dotted var(--rule); padding-top: 14px; }
   .meaning .lede { font-size: 20px; }
-  .meaning .sub { font-size: 16px; }
+  .meaning .sub { font-size: 14px; }
 
   .distill { margin-top: 0; padding-top: 0; border-top: 0; }
   /* Keeps the same point-and-a-half over .meaning .sub at 16px. */
@@ -514,6 +645,10 @@
   .module { width: var(--measure); margin: 32px auto 0; --mod-pad: 26px; padding: 18px var(--mod-pad) 24px; }
   .log { font-size: 18px; }
   .module h2 { margin: 8px 0 14px; }
+
+  .patternGrid { grid-template-columns: 112px minmax(0, 1fr); }
+  .patternHeadline { font-size: 20px; }
+  .patternBody { font-size: 19px; line-height: 1.28; }
 
   .input { margin-top: 28px; padding-top: 0; padding-bottom: 46px; }
   .input textarea, .entry { font-size: 16px; }

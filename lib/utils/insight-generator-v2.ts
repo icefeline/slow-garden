@@ -9,6 +9,7 @@
  */
 
 import type { SkyReadout } from './card-readout';
+import type { DetectedPattern } from './pattern-detector';
 import { CardArchetype, getCardArchetype, getRandomCardPhrase } from '../data/card-archetypes';
 import { getRandomTransitOpener, getTimingPhrase, planetMeanings } from '../data/transit-templates';
 import { getRandomHousePhrase, getHouseEmotionalResonance, getRandomHouseQuestion, houseContexts } from '../data/house-contexts';
@@ -60,6 +61,13 @@ export interface GeneratedInsight {
     exact: boolean;
     sky: SkyReadout | null;
   };
+  /**
+   * Every pattern stamp worth naming that day, cached alongside the insight
+   * for the same reason `readout` is: a card pulled up later should show the
+   * pattern situation as it was the day it was drawn, not recomputed against
+   * today's history.
+   */
+  patterns?: DetectedPattern[];
 }
 
 /**

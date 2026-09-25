@@ -546,6 +546,30 @@ export async function calculateActiveTransits(
 }
 
 /**
+ * Which of the six transiting planets calculateActiveTransits checks are
+ * currently retrograde — apparent backward motion, tiny movement over a day
+ * in the wrong direction. Geocentric and ayanamsa-independent, so this needs
+ * no observer location and no sidereal correction.
+ */
+export function getRetrogradePlanets(currentDate: Date = new Date()): Planet[] {
+  const transitingPlanets: Planet[] = ['saturn', 'jupiter', 'uranus', 'neptune', 'pluto', 'mars'];
+  const tomorrow = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000);
+
+  try {
+    const today = calculatePlanetaryPositions(currentDate);
+    const next = calculatePlanetaryPositions(tomorrow);
+
+    return transitingPlanets.filter(planet => {
+      const delta = ((next[planet] - today[planet] + 180) % 360 + 360) % 360 - 180;
+      return delta < 0;
+    });
+  } catch (error) {
+    console.error('Failed to calculate retrograde planets:', error);
+    return [];
+  }
+}
+
+/**
  * Get the most relevant transit for the drawn card.
  * Uses card-planet affinity to weight toward thematically resonant transits.
  * Falls back to tightest orb if no affinity match is active.

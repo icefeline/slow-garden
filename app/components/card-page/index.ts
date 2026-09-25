@@ -15,5 +15,6 @@ export { Keywords } from './Keywords';
 export { Meaning } from './Meaning';
 export { Distill } from './Distill';
 export { Module } from './Module';
+export { PatternStamps } from './PatternStamp';
 export type { MarginRow } from './types';
 export { default as styles } from './card-page.module.css';

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import styles from './card-page.module.css';
+import { PatternStamps } from './PatternStamp';
+import type { DetectedPattern } from '@/lib/utils/pattern-detector';
 
 /**
  * How the module fills in.
@@ -20,8 +22,12 @@ import styles from './card-page.module.css';
  * `body` is the one deliberate pause — the read is held a beat after the
  * transit line so the two don't arrive together and lose the sense of one
  * following from the other.
+ *
+ * `pattern` holds the stamp row back a further beat past the body, so it
+ * reads as something the machine noticed after finishing the read, not as
+ * one more paragraph landing in the same breath.
  */
-const STAGE_MS = { thinking: 700, body: 900 } as const;
+const STAGE_MS = { thinking: 700, body: 900, pattern: 1500 } as const;
 
 /** The glyphs an ephemeris uses, so the log line reads as a real transit line. */
 const ASPECT_GLYPH: Record<string, string> = {
@@ -55,6 +61,8 @@ interface ModuleProps {
   onRetry?: () => void;
   /** The ask screen's second link — fetches today's reading right away, no code needed. */
   onContinue?: () => void;
+  /** Every pattern worth naming today, if the recent draws or the live sky turned any up. */
+  patterns?: DetectedPattern[];
 }
 
 /**
@@ -82,6 +90,7 @@ export function Module({
   hasError,
   onRetry,
   onContinue,
+  patterns,
 }: ModuleProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -109,6 +118,21 @@ export function Module({
       return;
     }
     const timer = setTimeout(() => setBodyShown(true), STAGE_MS.body);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
+  /**
+   * The pattern stamp row, held back until after the body has had its own
+   * moment — same reasoning as `bodyShown`, one stage later. A cached
+   * reading skips the wait entirely, same as the body does.
+   */
+  const [patternShown, setPatternShown] = useState(!isLoading);
+  useEffect(() => {
+    if (isLoading) {
+      setPatternShown(false);
+      return;
+    }
+    const timer = setTimeout(() => setPatternShown(true), STAGE_MS.pattern);
     return () => clearTimeout(timer);
   }, [isLoading]);
 
@@ -188,6 +212,8 @@ export function Module({
         <>
           <h2>{keyPhrase || 'what this could mean for you'}</h2>
           <p>{insight}</p>
+
+          {patternShown && patterns && patterns.length > 0 && <PatternStamps patterns={patterns} />}
 
           {action && (
             <div className={styles.try}>
