@@ -14,6 +14,7 @@ const DESKTOP_SCALE = 909 / 748;
  */
 const WELCOME_PX = 26;
 import AsciiFlower from './AsciiFlower';
+import Wordmark from './Wordmark';
 import {
   ObBack, ObHead, ObFields, ObTag, ObHint, ObToggle, ObPermission, ObCta,
   fieldStyle, obValue, obPx, LIME, BONE,
@@ -996,42 +997,18 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               flexShrink: 0,
               overflow: 'visible',
             } as React.CSSProperties}>
-              {/* Glass text: "sl  w / garden" — Instrument Serif italic, -8% ls */}
-              <div
+              {/* Wordmark — 5a, typed out, in the same lime "glass" as before: 20% fill, 80% outline. */}
+              <Wordmark
+                animated="/slow-garden-wordmark-glass.webp"
+                still="/slow-garden-wordmark-glass-still.png"
+                alt="slow garden"
                 style={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  fontFamily: 'var(--font-instrument-serif), "Instrument Serif", serif',
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  textTransform: 'lowercase',
-                  textAlign: 'center',
-                  WebkitTextFillColor: 'rgba(206, 241, 123, 0.20)',
-                  color: 'rgba(206, 241, 123, 0.20)',
-                  WebkitTextStroke: '0.7px rgba(206, 241, 123, 0.80)',
-                  margin: 0,
-                  padding: 0,
-                  userSelect: 'none',
-                } as React.CSSProperties}
-              >
-                <span style={{ display: 'block', fontSize: 'var(--wm)', lineHeight: 'calc(var(--wm) * 0.8)', letterSpacing: '-0.08em' }}>sl&nbsp;&nbsp;w</span>
-                <span style={{ display: 'block', fontSize: 'var(--wm)', lineHeight: 'calc(var(--wm) * 0.8)', letterSpacing: '-0.08em' }}>garden</span>
-              </div>
-              {/* Spiral — sits in the gap between 'l' and 'w', standing in for the 'o' */}
-              <img
-                src="/spiral-icon.svg"
-                alt=""
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  width: 'calc(var(--wm) * 0.9048)',
-                  height: 'calc(var(--wm) * 0.775)',
-                  top: 'calc(var(--wm) * 0.2405)',
+                  top: '50%',
                   left: '50%',
-                  transform: 'translateX(-50%)',
-                  pointerEvents: 'none',
+                  transform: 'translate(-50%, -50%)',
+                  width: '90%',
+                  maxWidth: '520px',
                 }}
               />
             </div>
@@ -1466,42 +1443,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         height: '435px',
                         overflow: 'visible',
                       }}>
-                        {/* Glass text — bleeds off edges intentionally */}
-                        <div
+                        {/* Wordmark — 5a, typed out, navy with a lime shadow on the light window */}
+                        <Wordmark
+                          animated="/slow-garden-wordmark-navy.gif"
+                          still="/slow-garden-wordmark-navy-still.png"
+                          alt="slow garden"
                           style={{
                             position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            fontFamily: 'var(--font-instrument-serif), "Instrument Serif", serif',
-                            fontStyle: 'italic',
-                            fontWeight: 400,
-                            textTransform: 'lowercase',
-                            textAlign: 'center',
-                            WebkitTextFillColor: 'rgba(23, 34, 17, 0.20)',
-                            color: 'rgba(23, 34, 17, 0.20)',
-                            WebkitTextStroke: '0.7px rgba(23, 34, 17, 0.80)',
-                            margin: 0,
-                            padding: 0,
-                            userSelect: 'none',
-                          } as React.CSSProperties}
-                        >
-                          <span style={{ display: 'block', fontSize: '272px', lineHeight: '217px', letterSpacing: '-0.08em' }}>sl&nbsp;&nbsp;w</span>
-                          <span style={{ display: 'block', fontSize: '272px', lineHeight: '217px', letterSpacing: '-0.08em' }}>garden</span>
-                        </div>
-                        {/* Spiral — sits in the gap between 'l' and 'w', standing in for the 'o' */}
-                        <img
-                          src="/spiral-icon-desktop.svg"
-                          alt=""
-                          aria-hidden="true"
-                          style={{
-                            position: 'absolute',
-                            width: '246px',
-                            height: '210px',
-                            top: '65px',
+                            top: '50%',
                             left: '50%',
-                            transform: 'translateX(-50%)',
-                            pointerEvents: 'none',
+                            transform: 'translate(-50%, -50%)',
+                            width: '92%',
                           }}
                         />
                       </div>
