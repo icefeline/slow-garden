@@ -166,6 +166,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // Draggable card state
   const [isDragging, setIsDragging] = useState(false);
   const dragCardRef = useRef<HTMLImageElement>(null);
+  // Size of the card the reader actually grabbed, measured on screen at pointer-down, so the
+  // dragged card (and its trail) start at exactly the size they were clicked at.
+  const dragSizeRef = useRef<{ w: number; h: number } | null>(null);
+  const [dragSize, setDragSize] = useState<{ w: number; h: number } | null>(null);
+  const cardSize = () => dragSizeRef.current ?? (window.innerWidth < 768 ? { w: 110, h: 165 } : { w: 140, h: 210 });
+  const rememberCardSize = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return; // unmeasurable: keep the default size
+    dragSizeRef.current = { w: r.width, h: r.height };
+    setDragSize(dragSizeRef.current);
+  };
   const dragRafRef = useRef<number | null>(null);
   const [cascadedCards, setCascadedCards] = useState<Array<{ x: number; y: number; rotation: number; id: number }>>([]);
   const [cardIdCounter, setCardIdCounter] = useState(0);
@@ -836,6 +847,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // Mouse drag
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!isTypingComplete) return;
+    rememberCardSize(e.currentTarget as HTMLElement);
     e.preventDefault();
     setIsDragging(true);
     const rotation = Math.random() * 30 - 15;
@@ -843,8 +855,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setCardIdCounter(c => c + 1);
     requestAnimationFrame(() => {
       if (dragCardRef.current) {
-        const cw = window.innerWidth < 768 ? 110 : 140;
-        const ch = window.innerWidth < 768 ? 165 : 210;
+        const { w: cw, h: ch } = cardSize();
         dragCardRef.current.style.transform = `translate(${e.clientX - cw / 2}px, ${e.clientY - ch / 2}px)`;
       }
     });
@@ -853,6 +864,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // Touch drag
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!isTypingComplete) return;
+    rememberCardSize(e.currentTarget as HTMLElement);
     e.preventDefault();
     const touch = e.touches[0];
     setIsDragging(true);
@@ -861,8 +873,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     setCardIdCounter(c => c + 1);
     requestAnimationFrame(() => {
       if (dragCardRef.current) {
-        const cw = window.innerWidth < 768 ? 110 : 140;
-        const ch = window.innerWidth < 768 ? 165 : 210;
+        const { w: cw, h: ch } = cardSize();
         dragCardRef.current.style.transform = `translate(${touch.clientX - cw / 2}px, ${touch.clientY - ch / 2}px)`;
       }
     });
@@ -877,8 +888,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       dragRafRef.current = requestAnimationFrame(() => {
         dragRafRef.current = null;
         if (dragCardRef.current) {
-          const cw = window.innerWidth < 768 ? 110 : 140;
-          const ch = window.innerWidth < 768 ? 165 : 210;
+          const { w: cw, h: ch } = cardSize();
           dragCardRef.current.style.transform = `translate(${e.clientX - cw / 2}px, ${e.clientY - ch / 2}px)`;
         }
       });
@@ -903,8 +913,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       dragRafRef.current = requestAnimationFrame(() => {
         dragRafRef.current = null;
         if (dragCardRef.current) {
-          const cw = window.innerWidth < 768 ? 110 : 140;
-          const ch = window.innerWidth < 768 ? 165 : 210;
+          const { w: cw, h: ch } = cardSize();
           dragCardRef.current.style.transform = `translate(${touch.clientX - cw / 2}px, ${touch.clientY - ch / 2}px)`;
         }
       });
@@ -1258,7 +1267,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
               }}
             >
               <img
-                src="/card-back.png"
+                src="/card-back-swirl.png"
                 alt="Card back"
                 className="select-none"
                 style={{
@@ -1396,7 +1405,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           >
             {/* Device frame with deck fan */}
             <img
-              src="/device-frame-deck.png"
+              src="/device-frame-deck-swirl.png"
               alt=""
               style={{
                 position: 'absolute',
@@ -1422,9 +1431,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                 background: '#F7F4E6',
               }}
             >
-              {/* Cloud background — shown on all onboarding steps */}
+              {/* Card-back pattern, softened — shown on all onboarding steps */}
               <img
-                src="/onboarding-desktop-bg.png"
+                src="/card-back-swirl.png"
                 alt=""
                 aria-hidden="true"
                 style={{
@@ -1433,7 +1442,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  opacity: 0.2,
+                  opacity: 0.1,
                   pointerEvents: 'none',
                   zIndex: 0,
                 }}
@@ -1663,7 +1672,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                               }}
                             >
                               <img
-                                src="/card-back.png"
+                                src="/card-back-swirl.png"
                                 alt="Card back"
                                 className="select-none"
                                 style={{
@@ -1732,10 +1741,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
       {/* Cascaded cards trail */}
       {cascadedCards.map((card, index) => {
-        const cw = isMobile ? 110 : 140;
-        const ch = isMobile ? 165 : 210;
+        const { w: cw, h: ch } = dragSize ?? (isMobile ? { w: 110, h: 165 } : { w: 140, h: 210 });
         return (
-          <img key={card.id} src="/card-back.png" alt="" className="rounded-2xl select-none"
+          <img key={card.id} src="/card-back-swirl.png" alt="" className="rounded-2xl select-none"
             draggable="false"
             style={{
               position: 'fixed', left: card.x - cw / 2, top: card.y - ch / 2,
@@ -1751,10 +1759,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
       {/* Active dragging card */}
       {isDragging && (() => {
-        const cw = isMobile ? 110 : 140;
-        const ch = isMobile ? 165 : 210;
+        const { w: cw, h: ch } = dragSize ?? (isMobile ? { w: 110, h: 165 } : { w: 140, h: 210 });
         return (
-          <img ref={dragCardRef} src="/card-back.png" alt="Dragging card" className="rounded-2xl shadow-2xl select-none"
+          <img ref={dragCardRef} src="/card-back-swirl.png" alt="Dragging card" className="rounded-2xl shadow-2xl select-none"
             draggable="false"
             style={{
               position: 'fixed', left: 0, top: 0,
